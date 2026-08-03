@@ -315,17 +315,38 @@ claude mcp add obsidian -- npx -y @modelcontextprotocol/server-obsidian \
   --vault-path "$(pwd)"
 
 # Opção B — via plugin Local REST API (busca por conteúdo e por links)
-export OBSIDIAN_API_KEY="COLE_A_CHAVE_DO_PLUGIN_AQUI"
-export OBSIDIAN_HOST="127.0.0.1"
-claude mcp add obsidian-rest -e OBSIDIAN_API_KEY -e OBSIDIAN_HOST \
-  -- npx -y mcp-obsidian
+# ATENÇÃO: o servidor MCP correto para esta opção é o pacote PYTHON
+# "mcp-obsidian" (via uvx), não o pacote npm de mesmo nome — esse último
+# (@calclavia, npm) é o servidor baseado em sistema de arquivos da Opção A
+# e falha com "Usage: mcp-obsidian <vault-directory>" se usado aqui.
+#
+# A versão 0.2.2 do pacote Python no PyPI é incompatível com versões
+# recentes do SDK `mcp` (erro: 'Server' object has no attribute
+# 'list_tools'). Fixe a versão do SDK com --with até o pacote ser
+# atualizado upstream.
+#
+# Credenciais: leia a API key de .secrets/obsidian_local_rest_api.json
+# (nunca cole a chave direto no comando/histórico do shell).
+API_KEY=$(python3 -c "import json;print(json.load(open('.secrets/obsidian_local_rest_api.json'))['api_key'])")
+claude mcp add obsidian-rest -e "OBSIDIAN_API_KEY=${API_KEY}" -e "OBSIDIAN_HOST=127.0.0.1" \
+  -- uvx --with "mcp==1.1.0" mcp-obsidian
+unset API_KEY
 
 # Conferir
 claude mcp list
 ```
 
-> **Não** coloque a chave de API em arquivo versionado. Use variável de ambiente
-> ou o gerenciador de segredos do sistema.
+`.secrets/obsidian_local_rest_api.json` (criar antes de rodar o comando acima):
+
+```json
+{
+  "api_key": "COLE_A_CHAVE_DO_PLUGIN_AQUI",
+  "host": "127.0.0.1"
+}
+```
+
+> **Não** coloque a chave de API em arquivo versionado nem na linha de comando.
+> Mantenha `.secrets/` no `.gitignore` e leia a chave a partir do JSON.
 
 ---
 
