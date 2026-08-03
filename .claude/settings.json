@@ -1,0 +1,27 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat 00-index.md memory/profile.md memory/preferences.md 2>/dev/null"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Read(./**)",
+      "Write(./memory/**)",
+      "Write(./daily/**)",
+      "Edit(./memory/**)",
+      "Edit(./projects/**)",
+      "Edit(./00-index.md)"
+    ],
+    "deny": [
+      "Write(./.obsidian/**)"
+    ]
+  }
+}
