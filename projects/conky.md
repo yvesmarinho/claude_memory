@@ -64,6 +64,16 @@ O arquivo original começava com `sudo cat > /etc/conky/conky.conf <<EOF` e term
 - `killall conky` às vezes não mata todas as instâncias (observado 2 PIDs simultâneos, um com config antiga em memória, reproduzindo bugs já corrigidos no arquivo).
 - Se um fix aplicado não aparecer, checar `pgrep -fa conky` e, se houver mais de um PID, usar `pkill -9 -x conky` antes de reiniciar.
 
+## Campos de uso/status adicionados (2026-08-11, 2ª rodada)
+
+| Campo | Fonte | Observação |
+|---|---|---|
+| CPU Uso % | `${cpu}` (builtin do Conky) | Uso agregado de todos os núcleos |
+| GPU Uso % | `cat /sys/class/drm/card1/device/gpu_busy_percent` | Específico de GPU AMD (`amdgpu`); `card1` é o índice desta máquina — revalidar se hardware mudar (`ls /sys/class/drm/card*/device/gpu_busy_percent`) |
+| Ollama (ativo/inativo) | `systemctl is-active ollama` (fallback `inativo` se o comando falhar) | Serviço systemd do Ollama já configurado nesta máquina |
+
+- Removidas as linhas `Processes` (`${processes}`) e `Running` (`${running_processes}`) — não eram mais relevantes para o usuário.
+
 ## Ver também
 
 - [[../memory/infra-stack|Infra Stack]]
