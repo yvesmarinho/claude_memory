@@ -17,6 +17,7 @@ Ponto de entrada da memória. Consulte antes de responder.
 ## Projetos
 
 - [[enterprise-evolui-crm]] — CRM WhatsApp (Next.js/Supabase), fork de wacrm
+- [[enterprise-evo-crm-community]] — CRM community (Rails/Go/Python), deploy home011→wfdb02
 - [[enterprise-observability]] — stack Prometheus/Grafana/Loki em produção (wfdb01)
 - [[mnemosine]] — reorganização do vault Obsidian worldmind-vault
 - [[a-default-project]] — scaffold Python de bootstrap de projetos (Vya Jobs)
@@ -30,10 +31,15 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[skill-grill-with-docs]] — skill de interrogatório de planos/PRs/docs
 - [[local-bin-scripts]] — scripts CLI pessoais em ~/.local/bin
 - [[conky]] — config do monitor de sistema Conky (desktop)
+- [[portfolio-generator]] — CLI de scan/geração de portfólio de projetos, com descrição via README/IA
+- [[enterprise-ansible]] — automação Ansible da frota VPS (hardening, SSH SPA fwknop, ZTA, inventário)
+- [[indice-vya-jobs]] — índice das pastas de projeto em ~/DevOps/Vya-Jobs/ (descrição, lastchange, status)
 <!-- adicione links para projects/*.md conforme forem criados -->
 
 ## Diárias
 
 - [[2026-08-03]] — importação de histórico de sessões + triagem de ~/Documentos/DevOps/
 - [[2026-08-11]] — ajuste do Conky (campos de hardware CPU/GPU/placa-mãe, remoção de bateria)
+- [[2026-08-21]] — portfolio-generator: lint/type quebrados corrigidos, auditoria e correção de qualidade das descrições, PR #7
+- [[2026-08-26]] — enterprise-ansible: pendências da refatoração services/, feature 006 (inventário read-only), knock fwknop automático, config Claude versionada
 <!-- daily/YYYY-MM-DD.md -->

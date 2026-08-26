@@ -1,0 +1,5 @@
+{
+  "startHeadless": true,
+  "hideDockIcon": true,
+  "trayIconColor": "white"
+}
