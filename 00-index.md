@@ -20,7 +20,7 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[enterprise-evo-crm-community]] — CRM community (Rails/Go/Python), deploy home011→wfdb02
 - [[enterprise-observability]] — stack Prometheus/Grafana/Loki em produção (wfdb01)
 - [[mnemosine]] — reorganização do vault Obsidian worldmind-vault
-- [[a-default-project]] — scaffold Python de bootstrap de projetos (Vya Jobs)
+- [[scaffold-project]] — scaffold Python de bootstrap de projetos (repo yvesmarinho/scaffold-project, ex-default-project)
 - [[cmdb-platform]] — CMDB Flask-AppBuilder + inventário via Ansible
 - [[enterprise-hermes-agent]] — stack Docker do Hermes Agent (bots WhatsApp/IA)
 - [[enterprise-n8n-workflow]] — gestão de e-mail via n8n (reescrita v2)
@@ -34,6 +34,7 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[portfolio-generator]] — CLI de scan/geração de portfólio de projetos, com descrição via README/IA
 - [[enterprise-ansible]] — automação Ansible da frota VPS (hardening, SSH SPA fwknop, ZTA, inventário)
 - [[indice-vya-jobs]] — índice das pastas de projeto em ~/DevOps/Vya-Jobs/ (descrição, lastchange, status)
+- [[knowledge-harvester-library]] — agregador de conhecimento local (CLI `khl`, clustering de agentes via GitHub Copilot API)
 <!-- adicione links para projects/*.md conforme forem criados -->
 
 ## Diárias

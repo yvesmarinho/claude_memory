@@ -1,6 +1,6 @@
 <!--
 Criado em: 26/08/2026 09:40
-Modificado em: 26/08/2026 09:55
+Modificado em: 28/08/2026 12:17
 -->
 ---
 tags: [indice, vya-jobs, projetos]
@@ -10,6 +10,7 @@ updated: 2026-08-26
 ---
 
 > Removidas do índice (pastas apagadas do disco): `enterprise-python-backup.backup-20260130-092642`, `enterprise-python-n8n-collector`, `enterprise-treafik-test`, `enterprise-observability-main-sync`.
+> Movida para fora de Vya-Jobs (2026-08-28): `a-default-project` → `~/Documentos/DevOps/Projetos/scaffold-project` (repo renomeado para `yvesmarinho/scaffold-project`; ver [[scaffold-project]]).
 
 # Índice de Projetos — ~/DevOps/Vya-Jobs/
 
@@ -22,7 +23,6 @@ updated: 2026-08-26
 
 | nome                                        | descrição                                                                                                                                | lastchange         | status  |
 | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ------- |
-| a-default-project                           | Template de projeto enterprise multi-linguagem, production-ready, com scaffold, MCP e boas práticas (CI/CD temporariamente desabilitado) | 2026-07-15         | stag    |
 | docker-swarm                                | Artefatos de configuração de cluster Docker Swarm (sem README)                                                                           | 2025-08-30 (mtime) | init    |
 | enterprise-agentics-knowledge-collaboration | Projeto de colaboração de conhecimento com agentes (README ainda em template/placeholders)                                               | 2025-09-08         | stag    |
 | enterprise-ansible                          | Estrutura Ansible para automação de VPS — provisionamento, hardening, Cloudflare Zero Trust Access, SSH SPA                              | 2026-08-07         | active  |

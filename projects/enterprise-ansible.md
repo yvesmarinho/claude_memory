@@ -1,13 +1,13 @@
 ---
-tags: [project, enterprise-ansible, ansible, infra, vps, fwknop, ssh-spa, cloudflare-zero-trust, speckit, debian]
+tags: [project, enterprise-ansible, ansible, infra, vps, fwknop, ssh-spa, cloudflare-zero-trust, speckit, debian, security-update]
 aliases: [enterprise-ansible, ansible enterprise, ssh-spa repo]
 created: 2026-08-26
-updated: 2026-08-26
-source: sessão Claude Code 2026-08-26 (feature 006-server-inventory) + CLAUDE.md do repo + .specify/memory/constitution.md
+updated: 2026-08-27
+source: sessão Claude Code 2026-08-26 (feature 006-server-inventory) + 2026-08-27 (plano security-update) + CLAUDE.md do repo + .specify/memory/constitution.md
 ---
 
 <!-- Criado em: 26/08/2026 17:05 -->
-<!-- Modificado em: 26/08/2026 17:05 -->
+<!-- Modificado em: 27/08/2026 15:11 -->
 
 # enterprise-ansible
 
@@ -33,7 +33,9 @@ Frota ativa (grupo `all_spa`, inventário `inventories/hosts.yml`): **wf001, wf0
 - **Idempotência**: re-rodar playbook contra estado inalterado = zero tasks `changed`.
 - **Segredos** só via Ansible Vault ou `.secrets/`; nunca plaintext em `group_vars`/templates. `.secrets/.vault_pass` é o password file.
 - **fwknop `access.conf`**: usar `$IP`/`$SRC` para o IP de origem — nunca `%IP%`/`%SRC%` (passam literais, quebram geração de regra UFW). `ufw insert 1 allow from $IP ...` no `CMD_CYCLE_OPEN` (não `ufw allow`, que appenda no fim e perde para um `DENY` anterior). `ENABLE_CMD_EXEC` só no `access.conf` (stanza), nunca no `fwknopd.conf` (ignorado silenciosamente).
-- **Auditoria (`services/server-inventory`)**: coleta **read-only** (toda task `changed_when: false`), saída SÓ em `.tmp/inventory/` (gitignored — contém IPs/hostnames reais, nunca commitar). Coleta por **allowlist** campo-a-campo (`roles/server-inventory/tasks/assemble.yml` + template Go `files/container-inspect.gotmpl` — o template FÍSICAMENTE não emite `Config.Env`/cmdline/`Mounts[].Source`). Nunca `docker inspect '{{json .}}'`, nunca ler `/etc/fwknop/`, `~/.ssh/`, `*.env`, `.secrets/`, `ss -p`. Gate `inventory-verify.yml` = JSON Schema (`contracts/inventory-schema.json`, `additionalProperties: false`) + varredura regex anti-segredo.
+- **Auditoria (`services/server-inventory`)**: coleta **read-only** (toda task `changed_when: false`), saída SÓ em `.tmp/inventory/` (gitignored — contém IPs/hostnames reais, nunca commitar). Coleta por **allowlist** campo-a-campo (`roles/server-inventory/tasks/assemble.yml` + template Go `files/container-inspect.gotmpl` — o template FÍSICAMENTE não emite `Config.Env`/cmdline/`Mounts[].Source`). Nunca `docker inspect '{{json .}}'`, nunca ler `/etc/fwknop/`, `~/.ssh/`, `*.env`, `.secrets/`, `ss -p`. Gate `inventory-verify.yml` = JSON Schema (`contracts/inventory-schema.json`, `additionalProperties: false`) + varredura regex anti-segredo. **Gap conhecido do allowlist**: não captura pacotes/versão de MySQL/PostgreSQL — em `wfdb02` (único host com bancos nativos, sem Docker) o coletor não vê `mysql`/`postgresql` em `packages`, só as portas abertas (3306/5432/6432). Qualquer automação sobre versão de banco precisa de descoberta própria (`dpkg-query` + `mysql --version`/`psql --version`), não confiar no inventário.
+- **Janela de manutenção da frota**: todos os hosts (`all_spa`) estão em produção ativa **segunda a sexta, 07h–21h**. Operações reais contra a frota (deploy, updates, restart) devem ficar fora desse horário — noite/madrugada ou fim de semana. Ferramentas puramente locais (lint, syntax-check) podem rodar a qualquer hora.
+- **Padrão de guard de major version fixa** (usado em `services/security-update`): quando uma automação deve aplicar só patches/minor updates sem permitir troca de major version (Debian, MySQL, PostgreSQL), validar a major **antes** (assert em fact/descoberta) e **depois** (recoletar e comparar) do update, abortando com mensagem clara se divergir — nunca confiar que `apt upgrade`/`only_upgrade: true` sozinho garanta isso (repos de terceiros podem introduzir uma major nova).
 
 ## Convenções/padrões adotados
 
@@ -50,8 +52,17 @@ Frota ativa (grupo `all_spa`, inventário `inventories/hosts.yml`): **wf001, wf0
 - **Revisão de segurança PR #2** (`docs/bugs/2026-08-26_security-review-pr2.md`): senha de bootstrap `root` da VPS hardcoded em **6 playbooks ativos** + histórico git; migrados p/ `{{ vault_root_password }}` (var já existia no vault). Também: senha ArgoCD (K3s) e Cloudflare Global API key em texto plano em docs. **PR #2 (`005-ssh-spa` → `main`) segue bloqueado pelo GitGuardian** — rotação de credenciais + reescrita de histórico NÃO é possível agora (retrabalho demais, decisão do usuário).
 - **feature 006-server-inventory**: serviço Ansible novo, aditivo, de inventário/auditoria read-only da frota. PR #3 (base `005-ssh-spa`). Primeiro run real 2026-08-26: 4/4 hosts, 0 failed (wf001 Debian 12.15 / 489 pkgs / 27 containers; wf008 610/9; wfdb01 12.12 / 478 / 64 containers; wfdb02 766 pkgs / sem Docker). Follow-up perf: `docker inspect` é 1 chamada SSH por container.
 
+## Feature `security-update` (sessão 2026-08-27)
+
+- Novo serviço aditivo `services/security-update/` (não modifica `vps-base-security`/`vps-security` existentes) — plano de atualização de segurança da frota em 4 fases, ordem fixa, cada uma com par deploy/rollback: **1) Sistema Operacional** (`os-update-deploy/rollback.yml` — `apt upgrade dist`, major Debian fixada em **12/bookworm** com guard antes/depois via `/etc/os-release`, kernel novo só é avisado, reboot exige `-e confirm_reboot=true` explícito para não colidir com o SPA gate); **2) Segurança** (`security-hardening-update-deploy/rollback.yml` — openssh-server/sudo/ufw/fwknop-server/unattended-upgrades, `sshd` nunca `restart` direto — só `reload` após `sshd -t`, termina sempre lembrando `make ssh-spa-validate`); **3) Docker engine apenas** (`docker-engine-update-deploy/rollback.yml` — só docker-ce/docker-ce-cli/containerd.io, containers/imagens ficam para outro plano, pula `wfdb02` automaticamente); **4) Banco de Dados** (`db-security-update-deploy/rollback.yml` — só `wfdb02`, descoberta dinâmica de pacotes MySQL/Postgres pelo gap do inventário, aborta se algo fugir de MySQL 8.4.x/PostgreSQL 16.x, dump lógico `mysqldump`/`pg_dumpall` antes de qualquer update).
+- Todos os 8 playbooks seguem o padrão de 2 plays (pre-knock SPA em `localhost` + play principal `serial: 1` com re-knock por host nas `pre_tasks`), confirmação interativa (`pause`) antes de qualquer mudança, e backup de versões pré-update em `/root/security-update-backups/<run_id>/` no host remoto (fonte da verdade para o rollback via `apt-get install pkg=versão`).
+- Role compartilhada `services/security-update/roles/security-update/` só com a task `backup-package-versions.yml` (reuso via `roles: [{role: security-update, tasks_from: backup-package-versions}]`); `ansible.cfg` `roles_path` e `Makefile` (alvos `security-update-os/-security/-docker-engine/-db` + `-rollback`, `RUN_ID=`/`HOST=`) atualizados.
+- Validado com `make syntax-check` (8/8 OK) e `yamllint` (limpo). `ansible-lint` (profile moderate) NÃO foi rodado até o fim nesta sessão — usuário interrompeu pedindo para não executar comandos, citando a janela de manutenção (ver decisão acima). Pendente: rodar `ansible-lint services/security-update/` e corrigir o que aparecer, fora do horário de produção.
+- Ainda não executado contra a frota real — plano recomenda piloto em `wf008` (`--limit wf008`) antes de rodar em todos os hosts, e sempre fora de seg-sex 07h-21h.
+
 ## Pendências / próximos passos conhecidos
 
+- **`security-update`**: rodar `ansible-lint` pendente; executar piloto (`--check --diff --limit wf008`) fora da janela de produção antes do primeiro run real.
 - **PR #2** bloqueado (GitGuardian) até rotação de credenciais + `scripts/scrub-history-secrets.sh` + `git push --force` + recriar PR. Adiado pelo usuário.
 - **PR #3** (feature 006) aberto, base `005-ssh-spa`; ordem esperada: mergear PR #2 → rebasear 006 na `main` → mergear PR #3.
 - Apagar branches `003-ansible-service-api` e `004-wfdb03-cloudflare-fix` depois que PR #2 entrar.
