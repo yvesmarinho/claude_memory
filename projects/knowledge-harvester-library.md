@@ -2,12 +2,12 @@
 tags: [project, knowledge-harvester-library, khl, python, cli, click, pydantic, copilot-api]
 aliases: [KHL]
 created: 2026-08-10
-updated: 2026-08-31
+updated: 2026-09-01
 source: graphify-out/GRAPH_REPORT.md (commit e0ad84da, 4077 nodes / 248 comm.) + reexecução 31/08 (commit 5500909d, 4130 nodes, 5634 edges, 293 comm.)
 ---
 
 <!-- Criado em: 10/08/2026 13:26 -->
-<!-- Modificado em: 31/08/2026 09:14 -->
+<!-- Modificado em: 01/09/2026 10:16 -->
 
 # knowledge-harvester-library
 
@@ -56,3 +56,9 @@ O **knowledge-harvester-library (KHL)** é um agregador de conhecimento local em
 - Commit `5500909`: config de tooling do graphify + índice do projeto; `graphify-out/` gerado adicionado ao `.gitignore`.
 - Novo `scripts/orchestrate_graphify_scan.py` (community própria no grafo, 50 nós) — orquestrador que descobre repos, roda graphify com checkpoint (`tmp/graphify_scan_state.json`), sintetiza via Ollama (`call_ollama`, `build_synthesis_prompt`), lê segredos com `load_secrets`. Ainda não commitado.
 - `feat(session-manager)` (`14c11ff`): persistência de memória MCP no workflow `end.session`.
+
+## Sessão 01/09/2026 — merge dos PRs do Dependabot + estado do CI
+
+- **10 PRs do Dependabot mesclados** (#1–#11) na `main`: gitpython 3.1.58, setuptools 83.0.0, vcrpy 8.2.1, idna 3.15, urllib3 2.7.0, setup-uv 7, codecov-action 6, setup-python 6, checkout 6, codeql-action 4. `origin/main` avançou de `844b289b`.
+- **CI quebrado na `main` (pré-existente, não pelos bumps)**: `ruff` 623 erros (434 auto-fixáveis), `black` 89 arquivos, testes 3.12/3.13 falhando. `CodeQL Analysis (javascript)` mal configurado (projeto é Python-only). Tarefa registrada em `docs/TODO.md` → branch `fix-ci-lint`.
+- Branch de trabalho `chore-vscode-activate-env` ainda não virou PR; precisa rebase na `main` nova.

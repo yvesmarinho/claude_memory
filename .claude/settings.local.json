@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//tmp/mcpobs/**)",
+      "Bash(unzip -p mcp_obsidian-0.2.2-py3-none-any.whl mcp_obsidian-0.2.2.dist-info/METADATA)",
+      "Bash(uvx --with mcp==1.1.0 mcp-obsidian --help)",
+      "Bash(claude mcp *)",
+      "Bash(claude plugin *)"
+    ]
+  }
+}

@@ -7,7 +7,7 @@ source: importado de 13 sessões do Claude Code + sessão de renomeação 2026-0
 ---
 
 <!-- Criado em: 03/08/2026 09:24 -->
-<!-- Modificado em: 28/08/2026 12:18 -->
+<!-- Modificado em: 16/09/2026 10:57 -->
 
 # scaffold-project
 
@@ -53,6 +53,13 @@ Ferramenta CLI/scaffold em Python para bootstrap e manutenção de projetos de d
 - BUG-26 — `scaffold adopt --dry-run` executava de verdade: causa raiz era `--adopt` avaliado antes de `--dry-run` no dispatch e `flow_adopt` não lia a flag; dry-run era silenciosamente ignorado, chegando a criar `.scaffold-state.yaml` em projeto real (`~/VyaJobs/enterprise-observability`). Corrigido tratando `--dry-run` internamente em `flow_adopt`. Commits `c570c50`+`acbd771` no PR #27 (mergeado em `master` via #30).
 - Testes escrevendo artefatos em `Path.cwd()`: `objetivo-init*.yaml` apareciam na raiz do repo como efeito colateral de testes POC; corrigido redirecionando para `tmp_path`/`tempfile.mkdtemp()`.
 - `--logdir` não reconhecido: só `--log-dir` existia; adicionado alias `--logdir` apontando para o mesmo destino interno.
+
+## Revisão de arquivos pendentes de commit (16/09/2026)
+
+- Repositório estava sem nenhum commit ainda, com ~1020 arquivos staged (sem duplicatas de path). Achados na revisão:
+  - `retore/*.zip` (24MB, backups nomeados `default-project-*`, pré-renomeação) — removidos do stage e adicionados ao `.gitignore` (`*.zip`).
+  - `poc/.gitignore` estava staged apesar de `poc/` já estar no `.gitignore` — destacado (`git rm --cached`).
+  - `.memory/` (feature template Mini-Engram, IMP-59) continha só fixtures de teste triviais em `memories/**` e um `index/memory.db` (cache SQLite regenerável) — destacado do stage, `.memory/` adicionado ao `.gitignore`. README e MEMORY_POLICY originais arquivados em [[../raw/scaffold-project-mini-engram-memory-system|raw/scaffold-project-mini-engram-memory-system]] (documentam a arquitetura da feature, caso seja reativada).
 
 ## Pendências / próximos passos conhecidos
 
