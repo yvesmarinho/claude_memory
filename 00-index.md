@@ -1,10 +1,10 @@
 ---
 tags: [moc, index]
 created: 2026-08-03
-updated: 2026-09-15
+updated: 2026-09-19
 ---
 
-<!-- Modificado em: 15/09/2026 -->
+<!-- Modificado em: 19/09/2026 10:46 -->
 
 # 00 — Índice mestre (Map of Content)
 
@@ -15,7 +15,7 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[profile]] — quem sou e no que trabalho
 - [[preferences]] — como quero que o Claude se comporte
 - [[infra-stack]] — stack de infraestrutura que administro
-- [[bug-freeze-nouveau-2026-09-12]] — freeze de GPU (nouveau) em home016, corrigido com driver NVIDIA
+- [[bug-freeze-nouveau-2026-09-12]] — freeze de GPU (nouveau) em home016, corrigido com driver NVIDIA (GPU substituída depois por AMD RX 580, ver [[2026-09-19]])
 
 ## Projetos
 
@@ -40,6 +40,7 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[knowledge-harvester-library]] — agregador de conhecimento local (CLI `khl`, clustering de agentes via GitHub Copilot API)
 - [[buzzclubhub]] — SPA de gestão para agência de influência (React/Supabase), refatoração/hardening em andamento
 - [[devops-containers]] — central de configs de containers/Dockerfiles/Compose (containers/, Traefik v3.7, modelo-traefik)
+- [[praxisforge]] — curadoria e engenharia de agentes para Claude (agentic AI), skills/templates e fontes com proveniência
 <!-- adicione links para projects/*.md conforme forem criados -->
 
 ## Diárias
@@ -53,3 +54,7 @@ Ponto de entrada da memória. Consulte antes de responder.
 <!-- daily/YYYY-MM-DD.md -->
 - [[2026-09-14]] — enterprise-ansible: onboarding do host buzzclub-srvr001 (auto-detecção de conexão, checkpoint de execução)
 - [[2026-09-15]] — enterprise-ansible: correções de UFW/fwknop (policy allow indevido) e checkpoint em docker-install.yml, PR #5; devops-containers: estrutura de containers e revisão de segurança do Traefik
+- [[2026-09-18]] — praxisforge: objetivo-init atualizado para usar o vault Obsidian (daily/ para sessões, projects/ para o projeto)
+- [[2026-09-21]] — praxisforge: correção do CI, pyproject com uv e planejamento completo da feature 001 (PR #10)
+- [[2026-09-19]] — home016: troca de GPU NVIDIA GT 740 → AMD RX 580 (amdgpu/Mesa), driver NVIDIA removido e estado validado
+- [[2026-09-22]] — praxisforge: implementação completa da feature 001-registro-pastas-curadoria (73 tarefas TDD, 187 testes, cobertura 96%)
