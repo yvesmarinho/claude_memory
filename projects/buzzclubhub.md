@@ -2,12 +2,12 @@
 tags: [project, buzzclubhub, react, typescript, supabase, vite, rls, rbac]
 aliases: [buzzclub, buzzclubhub]
 created: 2026-09-03
-updated: 2026-09-11
+updated: 2026-09-23
 source: sessão de 03/09/2026 (~/.claude/projects/-home-yves-marinho-Documentos-DevOps-buzzclub-buzzclubhub/)
 ---
 
 <!-- Criado em: 03/09/2026 17:45 -->
-<!-- Modificado em: 11/09/2026 10:41 -->
+<!-- Modificado em: 23/09/2026 15:24 -->
 
 # buzzclubhub
 
@@ -374,3 +374,18 @@ mão. Em refatoração/hardening ativo via SpecKit
   volume de dados financeiro/contratual/PII em produção, considerar dump
   anonimizado ou parcial em vez de cópia 1:1, mas decisão final é do
   usuário. Nada foi copiado ainda nesta sessão.
+
+
+## Atualização 23/09/2026 — validação de prontidão do PR #16 (develop → main) para produção
+
+- **Veredito: NÃO atualizar produção ainda.** Bloqueios encontrados:
+  - PR #16 `CONFLICTING`: os 5 merges do Dependabot (12/09) estão no `upstream/main` mas não no `develop` → conflito só em `package-lock.json`. Correção: merge `upstream/main` → `develop` + regenerar lockfile.
+  - CI do `develop` (`d0a8de8`) vermelho no job "Quality gate" → passo "Test + coverage" (causa provável: secrets `VITE_SUPABASE_*` ausentes no Actions do upstream; log detalhado expirado, não confirmado).
+  - Commits locais `094846a` e `7c97969` ainda fora de `upstream/develop`.
+- **Riscos de migration para produção** (PR traz 3 migrations novas + 1 alterada):
+  - `20260304182436_seed-dev-admin-user-fixture` e `20260713170615_local-fixture-client-onboarding` são **fixtures locais** com timestamp fora de ordem — não deveriam ir para produção (`supabase db push` exigiria `--include-all`). Proposta: mover para `supabase/seed.sql`/script local-only.
+  - `20260903104228_...` (RLS `user_areas`) **não é idempotente** (`CREATE POLICY` sem `DROP IF EXISTS`) — falharia com "policy already exists" se essa versão não estiver registrada no histórico de migrations de produção (correção foi aplicada direto pelo Lovable).
+  - Não confirmado: quais versões produção tem registradas e se o Lovable aplica migrations automaticamente no merge em `main`.
+- 4 Edge Functions alteradas (`client-portal-auth`, `financial-alerts`, `shared-dashboard`, `zapsign-webhook`) — revalidar `security-regressions.test.ts` contra produção após deploy.
+- **Status**: usuário aguardando **credenciais do banco de dados** (service_role/connection string) — destrava inspeção do histórico de migrations de produção, cópia prod→dev e `db push` no projeto dev. Nenhuma alteração de código nesta sessão.
+- Próximos passos propostos (não executados): (1) idempotência da 104228 + tirar fixtures do caminho de produção; (2) merge `upstream/main` → `develop`; (3) secrets do CI (Audrey); (4) merge + validação de segurança.

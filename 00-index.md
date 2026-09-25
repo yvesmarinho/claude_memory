@@ -1,10 +1,10 @@
 ---
 tags: [moc, index]
 created: 2026-08-03
-updated: 2026-09-19
+updated: 2026-09-24
 ---
 
-<!-- Modificado em: 19/09/2026 10:46 -->
+<!-- Modificado em: 24/09/2026 16:56 -->
 
 # 00 — Índice mestre (Map of Content)
 
@@ -58,3 +58,5 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[2026-09-21]] — praxisforge: correção do CI, pyproject com uv e planejamento completo da feature 001 (PR #10)
 - [[2026-09-19]] — home016: troca de GPU NVIDIA GT 740 → AMD RX 580 (amdgpu/Mesa), driver NVIDIA removido e estado validado
 - [[2026-09-22]] — praxisforge: implementação completa da feature 001-registro-pastas-curadoria (73 tarefas TDD, 187 testes, cobertura 96%)
+- [[2026-09-23]] — praxisforge: features 004 (detecção de mudança via git, PR #14) e 005 (caminho absoluto no registro, constituição v2.0.0)
+- [[2026-09-24]] — praxisforge: CI do PR #15, features 006 (política de licença), 007 (registro fora do repo) e 008 (biblioteca de skills)
