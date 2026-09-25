@@ -2,11 +2,11 @@
 tags: [project, praxisforge, agentic-ai, claude, python]
 aliases: [PraxisForge]
 created: 2026-09-18
-updated: 2026-09-24
+updated: 2026-09-25
 ---
 
 <!-- Criado em: 18/09/2026 16:50 -->
-<!-- Modificado em: 24/09/2026 18:08 -->
+<!-- Modificado em: 25/09/2026 13:27 -->
 
 # PraxisForge
 
@@ -186,3 +186,42 @@ Curadoria e engenharia de agentes para Claude — pesquisa, síntese e refino co
 - Commit `feat(skills): primeira curadoria` na branch `feat-skill-diretrizes-codificacao`; **PR #20** aberto (aguardando CI/merge).
 - **Estado ao encerrar (24/09/2026)**: `main` em `7aa01fa` (PR #19); PR #20 pendente. Registro real em `~/.config/praxisforge/folders.yaml` com a pasta `github_forks__andrej_karpathy_skills` = MIT/curated.
 - **Próxima sessão**: merge do PR #20; decidir publicação global da skill; próximas fontes (ex.: `agent_skills`, `claude_code_best_practice`, `superpowers`); `--description` no `folders update`; dívida de ruff em `scripts/`; limitação do diretório atual na CLI.
+
+## Atualização — 25/09/2026: curadoria agent-skills e dívidas da CLI
+
+- PR #20 mergeado (`2b96047`). Decisão: `diretrizes-codificacao` não vai para o `~/.claude/skills` global.
+- Segunda curadoria: `agent_skills` (Addy Osmani, MIT) → skill `guarda-barra-qualidade` (contrato `CONSTRAINTS.md`, guarda contra rebaixar a barra); só `constraint-driven-development` extraída — as outras 24 skills se sobrepõem às regras globais. PR #21.
+- `folders update --description` (PR #22).
+- Decisão (usuário): `print()` permitido só em `scripts/` (saída de CLI); `scripts/` entrou no gate do ruff e `ruff format --check` no `make lint` (PR #23).
+- Decisão (usuário): raiz do projeto = ancestral do cwd com `pyproject.toml` `name = "praxisforge"`, override `PRAXISFORGE_ROOT`; ADR 0010 (PR #24).
+- Pendências: merge dos PRs #21–#24 (conflito esperado em `docs/TODO.md`); `session-manager.py` quebrado; scripts sem cabeçalho padrão; próximas fontes (`claude_code_best_practice`, `superpowers`); código morto de duplicados no scan.
+- Ver [[2026-09-25]].
+
+## Atualização — 25/09/2026 (tarde): PRs #21–#24 mergeados; curadoria automatizada planejada
+
+- `main` em `088381a` com PRs #21–#24 mergeados. `guarda-barra-qualidade` recebeu aviso MIT (é obra derivada).
+- Debate `docs/debates/curadoria-automatizada.md` fechado. Decisões: acervo `library/` por tipo (skills, commands, agents, hooks, rules, references); **só ideias** são extraídas; nada publicado no escopo global (remover o alvo `global`); `claude` CLI **sem ferramentas**; manifesto, estado e decisões em `~/.config/praxisforge/`; staging em `curation/<alias>/`; só "lacuna" e fusões passam por aprovação; PR automático.
+- Divisão: 009-acervo-library → 010-inventario-curadoria → 011-triagem-llm → 012-revisao-promocao.
+- Incidentes de processo: #22 mergeado com o validador de commits falhando (commit "Merge pull request" trazido pelo merge da main, sem problema de código) e #24 mergeado com checks pendentes. Lição: merge só após todos os checks concluídos; atualizar branches por rebase. A `main` não tem proteção de branch.
+- **Próximo passo**: `/speckit-specify` da 009.
+
+## Atualização — 25/09/2026 (fim de tarde): feature 009 implementada — PR #26
+
+- Constituição **v4.0.0** mergeada antes (PR #25): Princípio VI = acervo `library/`, publicação só em projetos; Princípio V = só ideias. ADRs 0011 e 0012.
+- Feature 009 (50/50 tarefas, 12 commits): `library/` com 6 tipos (skills, commands, agents, hooks, rules, references), `library validate|index|publish`, `library/INDEX.md` determinístico, `source-schema-v3` só ideias, migração `skills/` → `library/skills/` por `git mv`, `guarda-barra-qualidade` 1.0.1 com `rewrite_pending`.
+- Decisões técnicas: metadados sempre sob `metadata` no frontmatter; só skills citam references (vão dentro da skill publicada); hooks = pasta com `HOOK.md` (não publicáveis); marcador `library-publication-v1` (oculto ao lado do arquivo único); marcador da 008 só é regravado ("marcador atualizado").
+- US5 (fontes v3) adiantada para antes da US1 porque a validação do acervo dependia dela.
+- 931 testes, cobertura 97,04%; escala 200 itens em 0,44 s; CI do PR #26 verde (aguardando merge do usuário).
+- Pendências (TODO): "política máxima" em `folders show`; exceções sem uso da 006; renomear exceções `Skill*`; features 010–012.
+
+## Atualização — 25/09/2026 (noite): feature 010 implementada (branch `010-inventario-curadoria`, sem commit)
+
+- PR #26 (009) mergeado pelo usuário. Ciclo SpecKit completo da 010: spec → clarify → plan → tasks → analyze → implement (40/40 tarefas).
+- Decisões do usuário: `.md` avulso vira artefato `unknown`, demais textos só contados no manifesto (`uncurated`); exclusões **só no manifesto** (estado guarda apenas artefatos curáveis; etapa `discarded` = descarte da triagem); convenções em **`~/.config/praxisforge/curation-conventions.yaml`** (fora do repo; repo guarda só o `.example.yaml`; ausente → exit 3 com instrução de cópia).
+- Arquitetura: domínio `curation_artifact`/`curation_conventions`/`curation_state` (reconcile por hash, situação); matcher `pathspec` injetado (domínio sem lib externa); regras de diretório com `marker`, diretório mais externo é dono da subárvore; store JSON em `<dir do registro>/curation/<alias>/` com `flock`, validação na leitura e gravação, temp + `os.replace`. ADR 0013.
+- CLI: `curation inventory (<alias> | --all)`, `curation status [<alias>] [--json]`.
+- 1.086 testes (inclui desempenho 5.000 arquivos < 10 s), cobertura 97,29%.
+- Incidente: `ruff format .` reformatou bloco de código em `docs/guides/SESSION_DOCS_STYLE_GUIDE.md` — revertido; TODO para excluir docs do formatador.
+- **Próximo passo**: commits + PR da 010; depois rodar `curation inventory --all` nas pastas reais e ampliar convenções; feature 011-triagem-llm.
+- PR #27 (feature 010) mergeado pelo usuário; `main` em `9e3d89c`. Lição: o `make lint` do CI roda mypy também em `tests/` — rodar `make lint` localmente, não só `mypy src`.
+- Encerramento 25/09/2026 15:19. Próxima sessão: corrigir cabeçalhos da 010 com horário adiantado (escritos sem consultar o relógio); rodar `curation inventory --all` nas pastas reais; iniciar 011-triagem-llm. Ver [[2026-09-25]].

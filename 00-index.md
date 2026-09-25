@@ -60,3 +60,4 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[2026-09-22]] — praxisforge: implementação completa da feature 001-registro-pastas-curadoria (73 tarefas TDD, 187 testes, cobertura 96%)
 - [[2026-09-23]] — praxisforge: features 004 (detecção de mudança via git, PR #14) e 005 (caminho absoluto no registro, constituição v2.0.0)
 - [[2026-09-24]] — praxisforge: CI do PR #15, features 006 (política de licença), 007 (registro fora do repo) e 008 (biblioteca de skills)
+- [[2026-09-25]] — praxisforge: PRs #20–#24, debate da curadoria automatizada, constituição v4.0.0, features 009 (acervo library/, PR #26) e 010 (inventário de curadoria, PR #27)
