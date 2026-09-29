@@ -2,7 +2,7 @@
 tags: [project, praxisforge, agentic-ai, claude, python]
 aliases: [PraxisForge]
 created: 2026-09-18
-updated: 2026-09-25
+updated: 2026-09-28
 ---
 
 <!-- Criado em: 18/09/2026 16:50 -->
@@ -225,3 +225,28 @@ Curadoria e engenharia de agentes para Claude — pesquisa, síntese e refino co
 - **Próximo passo**: commits + PR da 010; depois rodar `curation inventory --all` nas pastas reais e ampliar convenções; feature 011-triagem-llm.
 - PR #27 (feature 010) mergeado pelo usuário; `main` em `9e3d89c`. Lição: o `make lint` do CI roda mypy também em `tests/` — rodar `make lint` localmente, não só `mypy src`.
 - Encerramento 25/09/2026 15:19. Próxima sessão: corrigir cabeçalhos da 010 com horário adiantado (escritos sem consultar o relógio); rodar `curation inventory --all` nas pastas reais; iniciar 011-triagem-llm. Ver [[2026-09-25]].
+
+## Atualização — 28/09/2026: cabeçalhos da 010, primeiro inventário real, spec da 011
+
+- PR #28 (`fix-cabecalhos-horario-010`): 13 cabeçalhos da 010 com horário posterior ao commit, ajustados ao horário do commit; `docs/bugs/2026-09-28-cabecalhos-horario-adiantado-010.md`. Casos antigos (specs 002/003) foram para o TODO. Detecção: comparar o cabeçalho com `git log -1 --format=%cI <arquivo>`.
+- Achado: registro real tinha 2 entradas de teste (`fonte`, `raiz__repo_a`, caminhos `/tmp/pytest-of-*`) vazadas em 24/09, antes da fixture de isolamento da 007. A suíte atual não vaza (hash do registro igual antes e depois). As entradas foram removidas à mão (backup `folders.yaml.bak-20260928`); não existe `folders remove` (TODO).
+- Primeiro `curation inventory --all`: 18 pastas, ~6 s; `unknown` = 64%. PR #29 (`chore-convencoes-curadoria`) amplia as convenções: skill = qualquer diretório com `SKILL.md`, `agents/`, `rules/` e `references/` com subpastas, e o formato do Copilot (`*.prompt.md`, `*.agent.md`, `*.chatmode.md`, `*.instructions.md`) → `unknown` cai para 29% (5.658 artefatos ativos, todos `pending`). O estado foi recriado limpo com autorização do usuário.
+- Convenções não têm lista de exclusão: traduções/docs seguem `unknown` (TODO: avaliar ou deixar para a triagem).
+- Feature 011 (`011-triagem-llm`, branch homônima, spec sem commit): 5 US, FR-001–036. Decisão (usuário, D2): em pastas `link`/`unknown`, o modelo de triagem devolve o resumo das ideias e o rascunho recebe só o resumo. Staging fora do repo (`~/.config/praxisforge/curation/<alias>/`, junto do estado da 010), porque o repo é público. O veredito da triagem precisa de campo próprio (o `verdict` da 010 é o da revisão). Código de saída 4 = teto.
+- **Próximo passo**: merge dos PRs #28 e #29 (conflito esperado em `docs/TODO.md`); `/speckit-clarify` ou `/speckit-plan` da 011; verificar como o `claude` CLI garante "sem ferramentas" (K4, bloqueante).
+
+## Atualização — 28/09/2026 (tarde): feature 011 implementada (branch `011-triagem-llm`, sem commit)
+
+- Ciclo SpecKit completo: specify → clarify (5 decisões) → plan → checklist de segurança (35 itens, lacunas corrigidas na spec: modelo de ameaça, FR-037 a FR-044) → tasks (62) → analyze → implement (62/62).
+- Decisões do usuário: rascunho automático na mesma execução; triagem vê o acervo **e** os rascunhos pendentes de todas as pastas (repetição vira fusão); staging fora do repo (`~/.config/praxisforge/curation/_drafts/`, substitui o E1 do debate); `unknown` triado normalmente; licença `link`/`unknown` → o modelo de triagem gera o resumo das ideias e o rascunho só vê o resumo.
+- Isolamento (K4) comprovado com o CLI real: `--tools ""`, MCP vazio, `--setting-sources ""`, `--disable-slash-commands`, system prompt próprio (custo 5× menor), stdin, cwd temporário, env com lista de permissão, falha fechada fora da faixa `>=2.1.283,<2.2`. `--bare` descartado (desliga o login da assinatura).
+- **Três restrições do CLI/API só aparecem com chamada real**: metaschema draft 2020-12 recusado, modo estrito (`minItems` sem `type`), `allOf` na raiz do `input_schema` recusado. Schema enviado ao CLI é "limpo"; a validação que vale é a local. `docs/bugs/2026-09-28-cli-recusa-metaschema-2020-12.md`. Lição: dublê não substitui o teste `live`.
+- **FR-019 recalibrado (decisão do usuário)**: a camada estrutural não distingue a `guarda-barra-qualidade` (0,28) de uma síntese autoral (até 0,77); calibração estrutural passou a ser par sintético EN × PT; a guarda-barra virou caso do juiz no teste `live` (5/6 acertos com Haiku — juiz não determinístico).
+- R10 revisto: reserva por etapa (1 chamada triagem, 4 rascunho); sem orçamento para o rascunho a lacuna fica `triaged` e a próxima execução só rascunha.
+- Primeira triagem real (`andrej_karpathy_skills`, 6 artefatos): 4 `covered` citando `skill/diretrizes-codificacao`, 1 `out_of_scope` (CURSOR.md), 1 falha (README.zh, resposta fora do contrato); US$ 0,08; pasta e repo intactos.
+- Guarda de arquitetura: domínio e aplicação sem `subprocess`/`os`/`shutil`/`tempfile`/`fcntl`/`socket`. ADR 0014, guia `docs/guides/triar-curadoria.md`.
+- Gates: 1.364 testes (+2 `live` fora do `make test`), cobertura 96,82%, lint/mypy/bandit ok.
+- **Próximo passo**: merge dos PRs #28 e #29, rebase da 011 (conflitos esperados nos cabeçalhos da 010 e em `docs/TODO.md`), commits + PR da 011; pendência I1 (exit 130 no FR-035); depois 012-revisao-promocao.
+- 28/09/2026 (fim de tarde): 011 commitada (4 commits) e **PR #30** aberto, CI verde. Falha inicial no CI: `test_no_absolute_paths` só olha arquivos versionados e pegou a regex de máscara `/home/...` do adapter (localmente o arquivo ainda não estava no git). Lição: rodar `make test` depois do `git add`, antes do push. Ordem de merge sugerida: #28 → #29 → rebase da #30.
+- 28/09/2026 17:20: PRs #28, #29 e #30 mergeados; `main` em `cf6cd0b` com a feature 011 entregue. Rebases resolvidos: #29 só no `docs/TODO.md` (mantidos os dois lados); #30 nos cabeçalhos de 6 arquivos da 010 (DATA/histórico corrigidos do #28 + MODIFICADO/histórico da 011) e no TODO. Aviso do Dependabot: 1 vulnerabilidade alta na `main` (alerta #1), a verificar.
+- **Próxima sessão**: verificar o alerta do Dependabot; pendência I1 (exit 130 no FR-035 da spec 011); triagem real em mais pastas (`curation triage --all` com teto); iniciar 012-revisao-promocao.

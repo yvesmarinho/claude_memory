@@ -1,10 +1,10 @@
 ---
 tags: [moc, index]
 created: 2026-08-03
-updated: 2026-09-24
+updated: 2026-09-28
 ---
 
-<!-- Modificado em: 24/09/2026 16:56 -->
+<!-- Modificado em: 28/09/2026 12:31 -->
 
 # 00 — Índice mestre (Map of Content)
 
@@ -41,6 +41,7 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[buzzclubhub]] — SPA de gestão para agência de influência (React/Supabase), refatoração/hardening em andamento
 - [[devops-containers]] — central de configs de containers/Dockerfiles/Compose (containers/, Traefik v3.7, modelo-traefik)
 - [[praxisforge]] — curadoria e engenharia de agentes para Claude (agentic AI), skills/templates e fontes com proveniência
+- [[consulta-ai-ia-br]] — produto de automação com IA dirigida por especificação (SDD), consultor que debate até a spec completa; em descoberta
 <!-- adicione links para projects/*.md conforme forem criados -->
 
 ## Diárias
@@ -61,3 +62,4 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[2026-09-23]] — praxisforge: features 004 (detecção de mudança via git, PR #14) e 005 (caminho absoluto no registro, constituição v2.0.0)
 - [[2026-09-24]] — praxisforge: CI do PR #15, features 006 (política de licença), 007 (registro fora do repo) e 008 (biblioteca de skills)
 - [[2026-09-25]] — praxisforge: PRs #20–#24, debate da curadoria automatizada, constituição v4.0.0, features 009 (acervo library/, PR #26) e 010 (inventário de curadoria, PR #27)
+- [[2026-09-28]] — novo-produto: questionário de descoberta (166 perguntas), decisão H-04 multi-tenancy híbrido, premissas ASM-01..10
