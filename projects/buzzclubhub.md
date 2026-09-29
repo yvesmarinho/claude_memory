@@ -2,12 +2,12 @@
 tags: [project, buzzclubhub, react, typescript, supabase, vite, rls, rbac]
 aliases: [buzzclub, buzzclubhub]
 created: 2026-09-03
-updated: 2026-09-23
+updated: 2026-09-29
 source: sessão de 03/09/2026 (~/.claude/projects/-home-yves-marinho-Documentos-DevOps-buzzclub-buzzclubhub/)
 ---
 
 <!-- Criado em: 03/09/2026 17:45 -->
-<!-- Modificado em: 23/09/2026 15:24 -->
+<!-- Modificado em: 29/09/2026 17:06 -->
 
 # buzzclubhub
 
@@ -389,3 +389,22 @@ mão. Em refatoração/hardening ativo via SpecKit
 - 4 Edge Functions alteradas (`client-portal-auth`, `financial-alerts`, `shared-dashboard`, `zapsign-webhook`) — revalidar `security-regressions.test.ts` contra produção após deploy.
 - **Status**: usuário aguardando **credenciais do banco de dados** (service_role/connection string) — destrava inspeção do histórico de migrations de produção, cópia prod→dev e `db push` no projeto dev. Nenhuma alteração de código nesta sessão.
 - Próximos passos propostos (não executados): (1) idempotência da 104228 + tirar fixtures do caminho de produção; (2) merge `upstream/main` → `develop`; (3) secrets do CI (Audrey); (4) merge + validação de segurança.
+
+
+## Atualização 29/09/2026 — nova produção Supabase restaurada do backup Lovable
+
+- **Novo projeto de produção** (`agdq…`, controlado pelo usuário) substitui o antigo `emwj…` (Lovable). Credenciais: `.secrets/buzzclub-supabase-prod.env` (URL/anon) e `.secrets/buzzclub-supabase-prod.json` (`db_url`, conexão direta).
+- Backup do Lovable restaurado integralmente e validado por contagem (100 tabelas, 6.131 linhas, 15 usuários com senhas originais, 105 migrations). Procedimento em `docs/guides/RESTAURACAO_BACKUP_SUPABASE.md`; detalhe em [[../daily/2026-09-29|daily/2026-09-29]].
+- **Padrões a lembrar**: backup do Lovable vem de **pg_dump 18** (usar `postgres:18`); no Supabase hospedado restaurar em etapas com `pg_restore -L --no-owner` (public → dados auth/storage → FKs para auth + trigger/policies storage/publication); conexão direta é **IPv6-only** → `docker run --network host`.
+- Histórico de migrations de produção tem versões **1–3 s diferentes** dos nomes em `supabase/migrations/` (Lovable grava o horário de aplicação) → nunca `supabase db push` sem `migration repair` antes.
+- Pendências: deploy das 6 Edge Functions (precisa PAT + `CRON_SECRET`/`PORTAL_JWT_SECRET`/`ZAPSIGN_*`), recriar 2 jobs cron, copiar 69 arquivos do storage, Auth URLs, webhook ZapSign.
+
+## Atualização 29/09/2026 17:06 — nova produção operacional (funções, ZapSign, Auth, imagem)
+- Edge Functions (6) publicadas no `agdq…`; secrets em `.secrets/buzzclub-supabase-prod-functions.json`
+  (inclui `access_token` do CLI/Management API). Jobs cron leem `project_url`/`anon_key`/`cron_secret` do Vault.
+- ZapSign não suporta header custom: autenticação do webhook é por `?secret=` na URL.
+- Front de produção: `https://dev.buzzclub.co` (Docker + Traefik); `VITE_*` embutidos no build,
+  `scripts/docker-build.sh [env]` usa por padrão o env da nova produção.
+- API de logs do Supabase: `logs.all` removido (410); `/analytics/endpoints/logs` usa ClickHouse com tabela `logs`
+  e `source_name` — retornou "Backend error" nos testes; ler logs pelo dashboard.
+- Detalhe em [[../daily/2026-09-29|daily/2026-09-29]].

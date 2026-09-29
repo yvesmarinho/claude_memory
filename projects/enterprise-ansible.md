@@ -103,3 +103,14 @@ Detalhes completos, arquivos modificados e gotchas: `[[../daily/2026-09-14|2026-
 - **`ssh_whitelist_ips_archaris`/`archyros` em `group_vars/all/security.yml`**: só IPs públicos reais (ex.: `177.11.48.73`) — faixas RFC1918 não têm rota até um VPS público, é lixo que só engana quem lê a config achando que restringe algo.
 
 Detalhes completos, diagnóstico linha-a-linha dos logs e gotchas: `[[../daily/2026-09-15|2026-09-15]]`.
+
+
+## fwknop no buzzclub-srvr001: script, UFW e log (sessão 2026-09-29)
+
+- **"fwknop não responde" era o script do cliente, não o daemon**: `~/.local/bin/ssh-buzzclub-srvr001` tinha um espaço no fim do `IP=`, e o `nc -z` falhava até dar timeout. Antes de culpar o fwknopd, conferir os logs (`access source match` + `CMD_CYCLE_OPEN` executado) e o comando manual.
+- **O fwknopd não grava log em arquivo**, só manda para o syslog. Nova task `ssh-spa/roles/ssh-spa/tasks/logging.yml` (tag `ssh_spa_logging`) com drop-in do rsyslog (`/etc/rsyslog.d/30-fwknopd.conf` → `/var/log/fwknop/fwknopd.log`) e logrotate; o rollback remove os dois.
+- **Bug em `ssh-spa/tasks/firewall.yml`**: a extração do ID do job `at` (`regex_search('job\s+(\d+)')`) quebra no ansible-core atual quando não encontra o padrão, e o firewall cai no rescue sem aplicar o DENY. A correção depende da saída real do `at` no host (pendente).
+- **buzzclub-srvr001 continua com `5010 ALLOW Anywhere`** e sem `allow 62201/udp`: o gate SPA (Princípio VII) não está ativo nesse host até o firewall rodar com sucesso.
+- As `pre_tasks` do `ssh-spa-deploy.yml` não têm tags, então `--tags ssh_spa_firewall` pula o knock e a detecção. Rodar o deploy completo com `--limit`.
+
+Detalhes: `[[../daily/2026-09-29|2026-09-29]]`.
