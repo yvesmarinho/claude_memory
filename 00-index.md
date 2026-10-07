@@ -1,10 +1,10 @@
 ---
 tags: [moc, index]
 created: 2026-08-03
-updated: 2026-09-28
+updated: 2026-10-06
 ---
 
-<!-- Modificado em: 28/09/2026 12:31 -->
+<!-- Modificado em: 06/10/2026 16:10 -->
 
 # 00 — Índice mestre (Map of Content)
 
@@ -44,6 +44,12 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[consulta-ai-ia-br]] — produto de automação com IA dirigida por especificação (SDD), consultor que debate até a spec completa; em descoberta
 <!-- adicione links para projects/*.md conforme forem criados -->
 
+## Skills
+
+- [[jsmastery-scope-skill-analysis]] — análise do skill "scope" (jsmastery-skills): validade, necessidade e escopo de instalação
+- [[recap-skill-harness-claude-code]] — skill `/recap` + harness de hooks (diário JSONL + git) para recapitular alterações de projeto no Claude Code
+<!-- skills/*.md -->
+
 ## Diárias
 
 - [[2026-08-03]] — importação de histórico de sessões + triagem de ~/Documentos/DevOps/
@@ -63,3 +69,6 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[2026-09-24]] — praxisforge: CI do PR #15, features 006 (política de licença), 007 (registro fora do repo) e 008 (biblioteca de skills)
 - [[2026-09-25]] — praxisforge: PRs #20–#24, debate da curadoria automatizada, constituição v4.0.0, features 009 (acervo library/, PR #26) e 010 (inventário de curadoria, PR #27)
 - [[2026-09-28]] — novo-produto: questionário de descoberta (166 perguntas), decisão H-04 multi-tenancy híbrido, premissas ASM-01..10
+- [[2026-10-01]] — buzzclubhub: PRs #4–#7 mergeados (CI sem credenciais), SMTP/Auth URLs/reset de senha validados na produção, modo de manutenção (PR #9, ADR-006), proposta de perfis, tela Acessos aprovada, ata para a Diretora; tarde: homologação no Supabase dev, manutenção na produção, PRs #10–#13 (send-to-zapsign, permissões, /login, healthcheck)
+- [[2026-10-03]] — buzzclubhub: spec 009 completa na main (PRs #31–#40: US3, US4, backfill/conciliação, US5, fix Notas Fiscais, Roadmap em Configurações); dev com migrations 100300–100700, backfill 100%, imagem :homolog sha-95cc700; aguardando validação (T069) → produção
+- [[2026-10-05]] — buzzclubhub: PRs #41–#56 (CI/Dependabot, specs 011 e 012-MVP Visão geral, fix RLS da Visão geral, listas paginadas); regra só DEV; spec 013 (custos por entrega do PV) com Q3 pendente
