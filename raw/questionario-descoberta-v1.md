@@ -5,6 +5,7 @@
 > **Status:** RASCUNHO v1 — aguardando respostas.
 > **Base:** `objetivo-init-schema-v2.json` e `proposta-atualizacao-objetivo-init.md` (pasta do projeto).
 > **Destino das respostas:** preencher o `objetivo-init` v2 do próprio produto (fase 0 — especificação).
+> **INFORMAÇÃO:** Este arquivo é memória. O projeto está no Google Drive da Vya.Digital
 
 ---
 

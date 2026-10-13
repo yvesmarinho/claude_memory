@@ -4,7 +4,7 @@ created: 2026-08-03
 updated: 2026-10-06
 ---
 
-<!-- Modificado em: 06/10/2026 16:10 -->
+<!-- Modificado em: 08/10/2026 17:18 -->
 
 # 00 — Índice mestre (Map of Content)
 
@@ -42,6 +42,7 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[devops-containers]] — central de configs de containers/Dockerfiles/Compose (containers/, Traefik v3.7, modelo-traefik)
 - [[praxisforge]] — curadoria e engenharia de agentes para Claude (agentic AI), skills/templates e fontes com proveniência
 - [[consulta-ai-ia-br]] — produto de automação com IA dirigida por especificação (SDD), consultor que debate até a spec completa; em descoberta
+- [[deskcommcrm]] — adaptação do DeskcommCRM (CRM WhatsApp + IA) para Vya.Digital: Supabase self-hosted, homolog/prod, Traefik; levantamento concluído
 <!-- adicione links para projects/*.md conforme forem criados -->
 
 ## Skills
