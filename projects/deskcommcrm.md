@@ -2,7 +2,7 @@
 tags: [project, deskcommcrm, crm, whatsapp, docker, vya-digital]
 aliases: [DeskcommCRM, CRM Vya.Digital]
 created: 2026-10-08
-updated: 2026-10-13
+updated: 2026-10-14
 ---
 
 # DeskcommCRM — adaptação para Vya.Digital
@@ -34,10 +34,12 @@ updated: 2026-10-13
 
 ## Histórico
 - [[daily/2026-10-08]] — levantamento de requisitos concluído; git reconfigurado; modelos de `.secrets/` criados.
-- 13/10/2026 — registros DNS dos 4 hostnames criados; `docs/objetivo.md` atualizado.
+- [[daily/2026-10-13]] — registros DNS dos 4 hostnames criados; `docs/objetivo.md` atualizado.
 - 13/10/2026 — `build.sh` criado em `enterprise-docker/deskcommcrm` (buildx amd64, recusa branch fora de main/homolog e árvore suja, confere tag com `docker manifest inspect`, imprime APP/WORKER/SCHEDULER_IMAGE para o .env; `--dry-run`). Ainda sem build real.
 - 13/10/2026 — composes prontos (validados com `docker compose config`, sem subir): Supabase oficial v0.8.1 copiado por `supabase-sync.sh` + `supabase.override.yml` + `crm.yml`, um projeto por ambiente (`deskcomm-<amb>`), contêineres `deskcomm-<amb>-*` (app-network compartilhada), labels Traefik em lista (chave de label não interpola), Studio só via túnel no gateway em loopback (8001 homolog / 8000 prod); `init-env.sh` gera `.env`/`crm.env` (600) de .secrets; `dc.sh` atalho. Chaves assimétricas do Supabase não usadas.
 - 13/10/2026 — `bootstrap.sh` (equivale às etapas 7/8 do install.sh do kit): extensões, baseline (novo: ON_ERROR_STOP; existente: modo update com log), chaves nuvemshop/cpf em private.app_secrets, dono via API admin do GoTrue executada no contêiner app (sem segredo em argv), org slug vya-digital, platform_admins mfa_required=false, sync-model-catalog. Só shellcheck; sem execução real.
 
+- [[daily/2026-10-14]] — how-tos de build e deploy em `docs/` da pasta de deploy; README com seção Documentação.
+
 ## Próximo passo
-- Serviço de backup; branch homolog no fork; primeiro build real; primeira subida em homolog.
+- Serviço de backup; push da homolog no fork; primeira subida em homolog seguindo `docs/how-to-deploy.md` (conferir no Docker Hub se a tag é -1402 ou -1411); seção de URLs do stack no README.
