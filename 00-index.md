@@ -43,6 +43,7 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[praxisforge]] — curadoria e engenharia de agentes para Claude (agentic AI), skills/templates e fontes com proveniência
 - [[consulta-ai-ia-br]] — produto de automação com IA dirigida por especificação (SDD), consultor que debate até a spec completa; em descoberta
 - [[deskcommcrm]] — adaptação do DeskcommCRM (CRM WhatsApp + IA) para Vya.Digital: Supabase self-hosted, homolog/prod, Traefik; levantamento concluído
+- [[workstation-update-tools]] — script ~/scripts/update-tools.sh: checa e atualiza ferramentas fora do apt (uv, uv tools, claude, ollama, rust/cargo, omz, atuin)
 <!-- adicione links para projects/*.md conforme forem criados -->
 
 ## Skills
@@ -73,3 +74,4 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[2026-10-01]] — buzzclubhub: PRs #4–#7 mergeados (CI sem credenciais), SMTP/Auth URLs/reset de senha validados na produção, modo de manutenção (PR #9, ADR-006), proposta de perfis, tela Acessos aprovada, ata para a Diretora; tarde: homologação no Supabase dev, manutenção na produção, PRs #10–#13 (send-to-zapsign, permissões, /login, healthcheck)
 - [[2026-10-03]] — buzzclubhub: spec 009 completa na main (PRs #31–#40: US3, US4, backfill/conciliação, US5, fix Notas Fiscais, Roadmap em Configurações); dev com migrations 100300–100700, backfill 100%, imagem :homolog sha-95cc700; aguardando validação (T069) → produção
 - [[2026-10-05]] — buzzclubhub: PRs #41–#56 (CI/Dependabot, specs 011 e 012-MVP Visão geral, fix RLS da Visão geral, listas paginadas); regra só DEV; spec 013 (custos por entrega do PV) com Q3 pendente
+- [[2026-10-19]] — uv migrado para pipx e atualizado para 0.13.1; criado ~/scripts/update-tools.sh (checagem + atualização de ferramentas fora do apt); ruff duplicado do cargo removido

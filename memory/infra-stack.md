@@ -2,10 +2,10 @@
 tags: [memory, infra]
 aliases: [stack, infraestrutura]
 created: 2026-08-03
-updated: 2026-09-19
+updated: 2026-10-19
 ---
 
-<!-- Modificado em: 19/09/2026 10:34 -->
+<!-- Modificado em: 19/10/2026 10:01 -->
 
 # Stack de infraestrutura administrada
 
@@ -20,3 +20,5 @@ updated: 2026-09-19
 - `pg_dump`/`pg_restore`: a versão do cliente importa mais que a do servidor-alvo. Um dump gerado por `pg_dump` 17.x (formato custom, `-Fc`) não pode ser lido por `pg_restore` 16.x (`unsupported version (1.16) in file header`) — falha total ou, pior, silenciosa em parte das tabelas se o restore "continuar em erro". Solução: rodar `pg_dump`/`pg_restore` via `docker run postgres:17-alpine ...` para casar a versão do arquivo, independente da versão instalada localmente ou da versão do servidor Postgres de destino (restaurar um dump PG17 num servidor PG16 funciona normalmente, desde que o *cliente* pg_restore seja >= versão do dump).
 - Máquina `home016` (desktop de trabalho) teve a GPU trocada em 19/09/2026: NVIDIA GeForce GT 740 → **AMD Radeon RX 580 2048SP (Polaris 20)**. Driver NVIDIA 470-server removido (`apt purge` dos pacotes `*nvidia*470*`, autoremove e `update-initramfs -u`); AMD usa o `amdgpu` do kernel + Mesa (RADV/radeonsi), sem driver proprietário. Validado: `Kernel driver in use: amdgpu`, OpenGL 4.6 `radeonsi`, Vulkan `RADV POLARIS10`, VA-API ok, sem módulos nvidia/nouveau. O histórico abaixo refere-se à GPU NVIDIA anterior.
 - Histórico (GPU NVIDIA GT 740, já substituída): `home016` sofreu congelamento total do desktop em 12/09/2026 por hang da engine gráfica do driver livre `nouveau` (mesmo com `nvidia_drm.modeset=1` na cmdline do kernel), disparado pelo GStreamer (`gst-plugin-scan`). Corrigido no mesmo dia: driver trocado para o **proprietário NVIDIA** e validado após reboot (`lspci -k` mostra `Kernel driver in use: nvidia`, `nvidia-smi` responde). Detalhes completos em [[bug-freeze-nouveau-2026-09-12]].
+- Workstation: `uv` instalado via **pipx** (`pipx install uv` / `pipx upgrade uv`), única cópia em `~/.local/bin/uv` — não usar cargo nem `pip install --user` (Python do sistema é externally-managed). Ver [[daily/2026-10-19]].
+- Workstation: ferramentas fora do apt e sua origem — `uv tool` (checkov, ggshield, graphifyy, pre-commit, ruff, specify-cli), claude (instalador nativo), ollama (script oficial em `/usr/local/bin`, serviço systemd), rust (rustup), cargo (nu + plugins, lazyrsync), oh-my-zsh e plugins/temas (git), atuin (`~/.atuin/bin`). O zsh vem do apt. Atualizar tudo com `~/scripts/update-tools.sh` — ver [[workstation-update-tools]].
