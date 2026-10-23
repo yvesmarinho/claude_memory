@@ -1,10 +1,10 @@
 ---
 tags: [moc, index]
 created: 2026-08-03
-updated: 2026-10-06
+updated: 2026-10-23
 ---
 
-<!-- Modificado em: 08/10/2026 17:18 -->
+<!-- Modificado em: 23/10/2026 10:34 -->
 
 # 00 — Índice mestre (Map of Content)
 
@@ -44,6 +44,10 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[consulta-ai-ia-br]] — produto de automação com IA dirigida por especificação (SDD), consultor que debate até a spec completa; em descoberta
 - [[deskcommcrm]] — adaptação do DeskcommCRM (CRM WhatsApp + IA) para Vya.Digital: Supabase self-hosted, homolog/prod, Traefik; levantamento concluído
 - [[workstation-update-tools]] — script ~/scripts/update-tools.sh: checa e atualiza ferramentas fora do apt (uv, uv tools, claude, ollama, rust/cargo, omz, atuin)
+- [[auditoria-seguranca-repositorios]] — auditoria e resposta a incidente (RAI-2026-001/002/003): repositórios GitHub, revogação de credencial de banco após Red Team de cliente, processo padrão, lições e pendências
+- [[plano-auditoria-repositorios-publicos]] — checklist priorizado (P0–P3) de auditoria dos repositórios públicos da conta
+- [[seaux]] — SEAUX: plano de força de vendas digital com IA (divulgação em redes, publicação agendada, agente de vendas com handoff humano); planejamento
+- [[sincronizacao-desktop-notebook]] — machine-sync: sincronização bidirecional desktop ↔ notebook (Mint 22) com Unison, chezmoi e Ansible; decisões D1–D17 fechadas, sshd implementado
 <!-- adicione links para projects/*.md conforme forem criados -->
 
 ## Skills
@@ -74,4 +78,7 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[2026-10-01]] — buzzclubhub: PRs #4–#7 mergeados (CI sem credenciais), SMTP/Auth URLs/reset de senha validados na produção, modo de manutenção (PR #9, ADR-006), proposta de perfis, tela Acessos aprovada, ata para a Diretora; tarde: homologação no Supabase dev, manutenção na produção, PRs #10–#13 (send-to-zapsign, permissões, /login, healthcheck)
 - [[2026-10-03]] — buzzclubhub: spec 009 completa na main (PRs #31–#40: US3, US4, backfill/conciliação, US5, fix Notas Fiscais, Roadmap em Configurações); dev com migrations 100300–100700, backfill 100%, imagem :homolog sha-95cc700; aguardando validação (T069) → produção
 - [[2026-10-05]] — buzzclubhub: PRs #41–#56 (CI/Dependabot, specs 011 e 012-MVP Visão geral, fix RLS da Visão geral, listas paginadas); regra só DEV; spec 013 (custos por entrega do PV) com Q3 pendente
-- [[2026-10-19]] — uv migrado para pipx e atualizado para 0.13.1; criado ~/scripts/update-tools.sh (checagem + atualização de ferramentas fora do apt); ruff duplicado do cargo removido
+- [[2026-10-19]] — uv migrado para pipx e atualizado para 0.13.1; criado ~/scripts/update-tools.sh (checagem + atualização de ferramentas fora do apt); ruff duplicado do cargo removido; sincronização desktop↔notebook: análise do plano, decisões D1–D17 e sshd com Ansible/Python
+- [[2026-10-20]] — buzzclubhub: homologação R3 (API) e de tela R3–R10; auditoria de segurança de enterprise-database-migration (RAI-2026-001) e enterprise-chathoot-migration (era público → privado, RAI-2026-002); resposta ao Red Team de cliente com revogação de credencial de banco (RAI-2026-003) e planilha de pendências
+- [[2026-10-21]] — enterprise-seax-auto-vending: análise do context.md, questionário de contexto (5 fases, 31 perguntas) respondido, estrutura Claude e repo com PR #1 mergeado
+- [[2026-10-23]] — SEAUX: nota do projeto renomeada para seaux.md (antiga movida para .trash/), links atualizados e vídeo de referência registrado
