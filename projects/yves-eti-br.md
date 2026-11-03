@@ -96,3 +96,58 @@ Camadas: dados brutos (`data/*.json`, curados manualmente + scan do `portfolio-g
 - **Investigar por que os dados do portfólio não foram atualizados** (aberto em 22/08/2026, registrado também em `docs/TODO.md` do repo) — último scan do `portfolio-generator` está em `f2e6836` (21/08/2026), mas o conteúdo exibido no site não reflete a atualização esperada; suspeitar de falha silenciosa em `scripts/transformer.py`/`validate_data.py` ou etapa do pipeline não executada. Ver também o precedente do PR #26 (deploy "com sucesso" não implica conteúdo em produção).
 - Sem branch protection / status checks obrigatórios — risco de merge acidental de PR quebrado, já que nada bloqueia no GitHub (só disciplina manual).
 - GHAS segue indisponível — se o usuário assinar futuramente, reavaliar reintroduzir CodeQL e Dependency Review no CI (removidos em 2026-08-11).
+
+
+## Sessão 28/10/2026 — Claude Design, paleta teal, reorganização da home e análise de SEO
+
+<!-- Modificado em: 28/10/2026 15:58 -->
+
+### Decisões duráveis
+
+- **Paleta teal (PR #57)** substituiu o violeta/azul estilo GitHub. Tokens: background `#0F1214`, surface `#171B1E`, surface-hover `#20262A`, gradiente de marca `#14B8A6`→`#06B6D4`, accent-solid `#0D9488`, accent-light `#5EEAD4`, textos `#EEF3F4`/`#93A1A6`/`#6B777C`, bordas `#2F383C`/`#222A2D`.
+- Texto sobre preenchimento da marca usa **`#04201D`** (~6,9:1); branco sobre teal reprova 4,5:1.
+- Os componentes ainda usam hex fixos em classes arbitrárias do Tailwind, não as variáveis CSS.
+- **Claude Design**: o design system "yves.eti.br" (https://claude.ai/artifact/V4s42TfVqGMpoSYGztXrH3) espelha os tokens do código, já com a paleta teal e o token `on-accent`.
+- Canvas de protótipo da recolorização: https://claude.ai/artifact/17T1a3ZJUf4Uy2QFWVC6o4.
+- Fluxo validado para projeto legado: extrair o DS do código → prototipar no canvas Design → aprovar → aplicar no código via PR.
+- **Home** (nesta ordem): Hero (nome, título, resumo, CTAs, 4 stat cards) → SkillsGrid → `WorkingPrinciples` → EducationSection.
+- `WorkingPrinciples` ("Como eu trabalho") recebe `philosophy` e `methodology` de `bio.json`, que saíram do hero.
+- A seção "Projetos em destaque" foi removida; `FeaturedProjects` e `getFeaturedProjects` foram apagados.
+- **Experiência** saiu da home para a página própria `/experiencia`: tem `h1`, entra no sitemap e tem link no header e no rodapé ("Navegação").
+- Stat cards: "Projetos" leva a `/projects` e "Anos de experiência" leva a `/experiencia`.
+- Os valores dos stat cards saem direto no HTML estático. A animação count-up e `src/hooks/use-reveal.ts` foram removidos, porque partiam de 0 e dependiam de JS.
+- `molecules/ExpandableText` mostra "ver mais/ver menos" nas descrições de experiência com mais de 240 caracteres.
+- Containers de seção padronizados em `max-w-6xl mx-auto px-4 sm:px-6`.
+- `npm run lint` (`next lint`) não funciona no Next 16 e o repo não tem config de ESLint.
+- Os gates reais hoje são `tsc --noEmit`, `npm run build` e `uv run pytest`.
+- `scripts/git-commit-with-file.sh` pede confirmação interativa; em execução não interativa, usar `echo y | ./scripts/git-commit-with-file.sh <arquivo>`.
+- Avaliação visual local: o build é estático (`output: export`, `trailingSlash: true`), então servir `out/` com `python3 -m http.server` e capturar com o Playwright do devDependencies.
+
+### Commits (PR #57, merge `5bd1e43` na main)
+
+- `a4b52e7` feat(design): troca paleta violeta/azul por teal/ciano
+- `22a4219` feat(home): remove projetos em destaque e linka card de projetos
+- `86c0f92` feat(experiencia): move experiência profissional para /experiencia
+- `3d4b791` feat(nav): adiciona link "Experiência" no header
+- `0630a05` feat(footer): adiciona link "Experiência" em Navegação
+- `0ae8661` fix(design): enxuga hero, mostra números reais e alinha seções
+
+### Pendências
+
+- **Deploy bloqueado por billing do GitHub**: os jobs de Actions não iniciam ("recent account payments have failed or your spending limit needs to be increased").
+- O run de deploy `40747951669` não executou, então a produção ainda não tem a paleta teal nem `/experiencia`.
+- Depois de regularizar o billing: `gh run rerun 40747951669`.
+- Alternativa ao CI: `npx wrangler pages deploy out --project-name=yves-eti-br`.
+- Ainda com a paleta antiga: o HTML embutido em `scripts/manage.py` e a DD-002 em `docs/DESIGN_DECISIONS.md`.
+- **SEO para recrutadores**: analisado, não implementado.
+  - Fase 1: unificar o JSON-LD num `@graph` (`ProfilePage` + `Person` + `WebSite` com `@id`). Hoje a home emite 2 `Person` divergentes, um em `layout.tsx` e outro em `page.tsx`.
+  - Fase 1: enriquecer o `Person` com `worksFor`, `alumniOf`, `hasCredential`, `knowsAbout`, `hasOccupation` e cidade.
+  - Fase 1: metadados e JSON-LD em `/experiencia`.
+  - Fase 1: barra final nas URLs do sitemap (o canonical usa `/x/`; o sitemap lista sem barra).
+  - Fase 2, depende do usuário: cidade e modalidade no title.
+  - Fase 2: foto real em `Person.image` (hoje aponta para o card OG).
+  - Fase 2: versão `/en` com hreflang.
+- Ajuste opcional: o "ver mais" decide pelo tamanho do texto e aparece em textos que cabem em 3 linhas.
+- Ajuste opcional: as 7 metodologias deixam 1 card sozinho na grade.
+- **Correção desta nota**: a decisão antiga que diz "philosophy/methodology renderizados na HeroSection" está desatualizada; ver acima.
+- **Correção desta nota**: o diagrama ainda cita `FeaturedProjects`, que não existe mais.

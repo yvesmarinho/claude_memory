@@ -2,12 +2,12 @@
 tags: [project, enterprise-ansible, ansible, infra, vps, fwknop, ssh-spa, cloudflare-zero-trust, speckit, debian, security-update]
 aliases: [enterprise-ansible, ansible enterprise, ssh-spa repo]
 created: 2026-08-26
-updated: 2026-08-27
+updated: 2026-11-02
 source: sessão Claude Code 2026-08-26 (feature 006-server-inventory) + 2026-08-27 (plano security-update) + CLAUDE.md do repo + .specify/memory/constitution.md
 ---
 
 <!-- Criado em: 26/08/2026 17:05 -->
-<!-- Modificado em: 27/08/2026 15:11 -->
+<!-- Modificado em: 02/11/2026 12:46 -->
 
 # enterprise-ansible
 
@@ -114,3 +114,74 @@ Detalhes completos, diagnóstico linha-a-linha dos logs e gotchas: `[[../daily/2
 - As `pre_tasks` do `ssh-spa-deploy.yml` não têm tags, então `--tags ssh_spa_firewall` pula o knock e a detecção. Rodar o deploy completo com `--limit`.
 
 Detalhes: `[[../daily/2026-09-29|2026-09-29]]`.
+
+
+## Relatório PDF por servidor a partir do inventário (sessão 2026-10-28)
+
+- Gerador standalone `.tmp/inventory/reports/inventory_pdf_report.py` (ReportLab; gitignored junto com `.tmp/`, ainda **não** versionado como parte de `services/server-inventory`). Lê o `inventory-audit_*.json` mais recente pelo timestamp do nome e gera `inventory-report_<host>_<stamp>.pdf` com KPIs, achados com severidade/recomendação, hardware, portas, systemd, Docker e pacotes.
+- Achados são calculados no contexto da frota (maior versão de Debian, pacotes-chave e Docker entre os hosts), então um host só aparece como "defasado" em relação aos outros.
+- **Gotcha de exposição**: porta publicada pelo Docker com `HostIp` vazio entra na cadeia DOCKER/nat antes do UFW, e o UFW não a filtra. O relatório separa essas portas das abertas por processos nativos.
+- Na auditoria de 28/10 o `packages` do wfdb02 já traz `mysql-community-server`/`postgresql-16`, o que contradiz o "gap do allowlist" anotado em 26/08. Revalidar antes de mudar a descoberta dinâmica do `security-update`.
+- Pendências: diff entre auditorias; levar o gerador para `services/server-inventory` (alvo Make) se for mantido.
+
+Detalhes e achados por host: `[[../daily/2026-10-28|2026-10-28]]`.
+
+
+## 01/11/2026 17:45 — Migração wf001/wfdb01 → wfdb02 (início da execução)
+
+**Status:** pausada a pedido do usuário; retomar em outra sessão.
+**Objetivo:** reduzir custo (queda de receita e de clientes) concentrando aplicações em Docker no wfdb02, junto com os bancos nativos. wf001 será desativado.
+
+**Feito no wfdb02**
+- Docker 29.1.2 com hold; pacotes MySQL em hold; swap 8 GB; `docker-apps.slice` 24G/26G; OOM -900 nos bancos.
+- Espelho apt da Contabo morto trocado por deb.debian.org.
+- `networking.service` corrigido: bloco inet6 comentado (IPv6 desligado no sistema). Validado em reboot.
+- PgBouncer: não subia após reboot (permissão de `userlist.txt` e falta de `PIDFile`). Corrigido e validado em reboot; ficou fora ~14 min.
+- Exporters removidos (Prometheus/Grafana desativados); backup em `/root/backup-exporters-*.tgz`, contém possíveis credenciais. `n8n-ping-wfdb02.service` (monitoring-prod) desabilitado.
+- Redes do modelo legado: `app-network`, `web`, `websecure`.
+- Firewall: UFW para 3306/5432/6432 a partir de 172.20.0.0/16 e 172.29.0.0/24; `DOCKER-USER` libera 80/443 só da Cloudflare, via `wfdb02-docker-user.service`.
+- Traefik v3.7.11 com labels, socket somente leitura, Let's Encrypt DNS-01.
+- Migrados e acessíveis: Dashy, Adminer (público, sem Access, por decisão do usuário) e BookStack (acessível segundo o usuário).
+
+**Decisões**
+- Docker + bancos no mesmo host é premissa fechada.
+- Borda: Traefik com proxy Cloudflare, sem túnel.
+- Modelo legado de redes nesta migração; segmentação depois.
+- Ordem por risco crescente; sem Portainer; RabbitMQ com vhost por aplicação.
+- Se faltar recurso: reduzir recursos das aplicações.
+
+**Lições**
+- Zona Cloudflare está em SSL `Flexible`: hostname novo em Proxied dá HTTP 418 (laço com o redirect do Traefik). Incluir o hostname na regra `wfdb02 - SSL strict` (Full strict) **antes** de virar o DNS; não mudar a zona inteira.
+- `host_vars` da raiz não é carregado pelos playbooks de `services/`; `docker-install.yml` usa `include_vars`. Passar `-e @host_vars/wfdb02/docker.yml`.
+- Reboot revelou falhas ocultas: testar reboot antes de confiar em serviço antigo.
+
+**Pendências ao retomar**
+1. Confirmar parada de Dashy, Adminer e BookStack no wf001; alteração automatizada foi negada pelo controle de permissões do Claude Code.
+2. Confirmar se o BookStack passou pelo DNS novo e se a sincronização final de `/config` é necessária (não foi executada por mim).
+3. Corrigir 2 linhas longas no playbook do BookStack e commitar os arquivos novos em branch (nada commitado).
+4. Porta SSH 5010 aberta para qualquer origem: fwknop desativado em todos os servidores.
+5. Bancos com acesso amplo e clientes externos não identificados; tentativas horárias ao inexistente `khomp_db`.
+6. Redis e RabbitMQ consolidados; depois Kutt, Metabase, Synesis, synChat, n8n.
+7. Definir Perfex e Passbolt (cofre de senhas) antes de desligar o wf001.
+8. Inventário: `buzzclub-srvr001` com porta desatualizada.
+9. Rollbacks ainda não testados; reboot com Traefik no ar não testado; `DOCKER-USER` após restart do Docker não testado.
+
+**Arquivos (sem commit):** `services/docker/playbooks/docker-wfdb02-*.yml`, `host_vars/wfdb02/docker.yml`, `docs/bugs/wfdb02-espelho-apt-contabo.md`. Documentos em `tmp/wfdb02/`.
+
+
+## 02/11/2026 11:43 — Portainer no wfdb02
+
+- **Revisa a decisão "sem Portainer"** de 01/11: Kutt e outras aplicações são publicados via Portainer.
+- **Versão:** configurada `portainer/portainer-ee:lts` (tag móvel; fixar depois). Passou por `adminvyadigital/portainer-ce:2.39.2-wf001` para recuperar o webhook; aplicação do EE ainda sem confirmação.
+- **Licença:** Portainer EE para 3 máquinas; a chave está no e-mail **admin@vya.digital**. Nunca gravar a chave em repositório ou nota.
+- **Acesso:** https://dckapp.vya.digital via Traefik, além de 127.0.0.1:9000 por túnel SSH. Hostname na regra `wfdb02 - SSL strict`, registro Proxied. Cloudflare Access recomendado; estado não confirmado.
+- **Gotchas:** registro em DNS only dá timeout (DOCKER-USER só aceita Cloudflare); `404 page not found` em texto puro é do Traefik, sem rota. `image_digest` da auditoria é ID local, não digest de registry. `uv run` falha neste repo: usar `.venv/bin/`.
+- **Portainer antigo:** dados em bind mount, compose em `/home/archaris/docker_user/portainer` no wf001; porta 9000 publicada em todas as interfaces, revisar.
+- **Arquivos (sem commit):** `services/docker/playbooks/docker-wfdb02-portainer.yml` e `-rollback.yml`.
+
+## 02/11/2026 12:46 — Kutt: estado ao encerrar
+
+- **Status:** não migrado. Portainer publicado e acessível no wfdb02, segundo o usuário.
+- **Banco:** IP do `wait-for-it` é o do wfdb02 (porta 5432, PgBouncer). Na stack nova: `DB_HOST=host.docker.internal`, `extra_hosts` com `host-gateway` e `command` do `wait-for-it` ajustado.
+- **Compose e imagem:** origem em `~/VyaJobs/enterprise-docker/kutt/wf001/kutt-vya/`; Dockerfile em Kutt v3.2.3. Sem volumes. Hostname `link.vya.digital`; resolver novo `letsencrypt`, porta interna 3000, sem publicar 3003.
+- **Pendências:** conferir `REDIS_ENABLED`; validar acesso de `172.20.%` ao banco; manter `JWT_SECRET`; incluir o hostname na regra SSL strict antes do DNS. `.secrets/kutt.env` existe e não foi lido.

@@ -1,10 +1,10 @@
 ---
 tags: [moc, index]
 created: 2026-08-03
-updated: 2026-10-23
+updated: 2026-10-26
 ---
 
-<!-- Modificado em: 23/10/2026 10:34 -->
+<!-- Modificado em: 26/10/2026 15:42 -->
 
 # 00 — Índice mestre (Map of Content)
 
@@ -39,6 +39,7 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[indice-vya-jobs]] — índice das pastas de projeto em ~/DevOps/Vya-Jobs/ (descrição, lastchange, status)
 - [[knowledge-harvester-library]] — agregador de conhecimento local (CLI `khl`, clustering de agentes via GitHub Copilot API)
 - [[buzzclubhub]] — SPA de gestão para agência de influência (React/Supabase), refatoração/hardening em andamento
+- [[buzzclubhub-matriz-de-acessos]] — matriz de acessos por função (80 perfis × 21 módulos, regras fixas, time atual, pendências do questionário 2)
 - [[devops-containers]] — central de configs de containers/Dockerfiles/Compose (containers/, Traefik v3.7, modelo-traefik)
 - [[praxisforge]] — curadoria e engenharia de agentes para Claude (agentic AI), skills/templates e fontes com proveniência
 - [[consulta-ai-ia-br]] — produto de automação com IA dirigida por especificação (SDD), consultor que debate até a spec completa; em descoberta
@@ -47,7 +48,7 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[auditoria-seguranca-repositorios]] — auditoria e resposta a incidente (RAI-2026-001/002/003): repositórios GitHub, revogação de credencial de banco após Red Team de cliente, processo padrão, lições e pendências
 - [[plano-auditoria-repositorios-publicos]] — checklist priorizado (P0–P3) de auditoria dos repositórios públicos da conta
 - [[seaux]] — SEAUX: plano de força de vendas digital com IA (divulgação em redes, publicação agendada, agente de vendas com handoff humano); planejamento
-- [[sincronizacao-desktop-notebook]] — machine-sync: sincronização bidirecional desktop ↔ notebook (Mint 22) com Unison, chezmoi e Ansible; decisões D1–D17 fechadas, sshd implementado
+- [[sincronizacao-desktop-notebook]] — machine-sync: sincronização bidirecional desktop home016 ↔ notebook home015 (Mint 22) com Unison sobre SSH e Ansible; repo yvesmarinho/sync-note-desktop, passo 1 (sshd restrito) mergeado, passo 2 (orquestrador machine-sync) em PR
 <!-- adicione links para projects/*.md conforme forem criados -->
 
 ## Skills
@@ -82,3 +83,5 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[2026-10-20]] — buzzclubhub: homologação R3 (API) e de tela R3–R10; auditoria de segurança de enterprise-database-migration (RAI-2026-001) e enterprise-chathoot-migration (era público → privado, RAI-2026-002); resposta ao Red Team de cliente com revogação de credencial de banco (RAI-2026-003) e planilha de pendências
 - [[2026-10-21]] — enterprise-seax-auto-vending: análise do context.md, questionário de contexto (5 fases, 31 perguntas) respondido, estrutura Claude e repo com PR #1 mergeado
 - [[2026-10-23]] — SEAUX: nota do projeto renomeada para seaux.md (antiga movida para .trash/), links atualizados e vídeo de referência registrado
+- [[2026-10-26]] — machine-sync: hosts corrigidos (home016↔home015), questionários, sshfs descartado, passo 1 reescrito (PR #1), chaves de host clonadas no notebook, passo 2 orquestrador com manifesto (PRs #2/#3)
+- [[2026-10-28]] — yves-eti-br: design system no Claude Design, paleta teal (PR #57), home reorganizada, página /experiencia, análise de SEO para recrutadores; deploy bloqueado por billing do GitHub. Projeto: [[yves-eti-br]]

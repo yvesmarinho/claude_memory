@@ -2,12 +2,12 @@
 tags: [project, sincronizacao, linux-mint, unison, chezmoi, ansible, ssh, dotfiles]
 aliases: [machine-sync, sincronização desktop notebook, plano-sincronizacao-mint22]
 created: 2026-10-19
-updated: 2026-10-23
+updated: 2026-10-26
 source: projeto "Sincronização Desktop Notebook" no Claude (thread de análise do plano, 19/10/2026)
 ---
 
 <!-- Criado em: 23/10/2026 10:34 -->
-<!-- Modificado em: 23/10/2026 10:34 -->
+<!-- Modificado em: 26/10/2026 15:42 -->
 
 # Sincronização Desktop ↔ Notebook (Linux Mint 22) — machine-sync
 
@@ -64,11 +64,55 @@ Processo repetível e bidirecional para manter desktop e notebook (Mint 22 Cinna
 ## Pendências
 
 - Preencher `host_vars` reais (IPs, chave pública de sincronização, UUID da conexão cabeada, impressão digital do notebook).
-- Rodar os roles com `--check --diff` nas máquinas (ou VMs) e aplicar.
+- Rodar os roles com `--check --diff` nas máquinas (home015 primeiro) e aplicar.
+- Criar a chave `~/.ssh/machine_sync_ed25519` com passphrase; nenhuma chave atual de `~/.ssh` tem passphrase. Chave do archaris = `~/.ssh/id_rsa` (mesma das VPS).
+- Excluir `~/.ssh/` da sincronização (chaves por máquina, D6).
 - Fase 0 (inventário, incluindo segredos e pastas XDG) antes da baseline.
-- Implementar o orquestrador Python (pré-voo, salvaguardas, wrapper do Unison, relatório) e os roles de C2/C2.5.
+- Mergear o PR #3, aplicar roles (home015 → home016) e rodar `machine-sync baseline docker --from <lado>`; validar com Unison real.
+- Roles de C2/C2.5 (pacotes) e expansão para a home inteira (cache de hash).
 - CR-001 (segredos com chezmoi + age) aguardando reabertura.
+
+## Revisão de 26/10/2026 (questionário respondido)
+
+- Máquinas: **home016** = desktop e master (orquestrador); **home015** = notebook e slave. home011 não participa.
+- Questionário respondido: `~/Documentos/DevOps/Projetos/sync-note-desktop/questionario-2026-10-26.md`.
+- Transporte: **Unison sobre SSH** (como no plano D1; despachante `machine-sync-remote` com lista branca). sshfs descartado de todo o projeto (decisão do Yves, 26/10/2026).
+- Script CIFS `~/.local/bin/home015-mount.sh` (share `docs_share`, senha em texto puro) a descartar; acesso entre as máquinas só por chave SSH.
+- Deleções: perguntar sempre, em lote com relatório + confirmação no terminal; opções apagar no outro lado / restaurar / ignorar desta vez; apagado×alterado é conflito.
+- Lixeira: backups do Unison em `~/.local/share/machine-sync/backups/` (excluída da sincronização), limpos (> 7 dias) no início de cada ciclo manual.
+- Renomeação/movimento: detectada por hash (apagado × criado) e aplicada **automaticamente** no outro lado, só registrada no relatório (exceção ao "perguntar sempre").
+- Piloto: pasta `~/Documentos/DevOps/docker` (só DEV, nada sigiloso), **incluindo** dados de bancos em bind mount (donos de container): containers parados nas duas máquinas antes do ciclo; Unison com sudo no wrapper para esses arquivos. Containers rodam sob demanda nas duas máquinas.
+- Ordem: 1) Ansible (unison 2.53.x, chaves SSH por máquina, sshd no notebook + client no desktop, UFW) → 2) orquestrador Python no piloto → 3) home inteira → 4) chezmoi. Instalação de Unison e chezmoi autorizada.
+- Script CIFS `home015-mount.sh`: movido para a lixeira em 26/10/2026 (senha do Samba da home011 continua válida até ser trocada).
+
+## Reescrita do passo 1 (26/10/2026)
+
+- O código da sessão de 19/10 (roles + despachante) não existia localmente; reescrito do zero.
+- Repositório: `~/Documentos/DevOps/Projetos/sync-note-desktop`, remoto GitHub privado `yvesmarinho/sync-note-desktop` (criado vazio em 26/10/2026), branch `001-ansible-sshd-sync`; questionários em `docs/questionarios/`.
+- Usuário administrativo `archaris` (ADR-003): existe no home016 (uid 1501, grupos adm/sudo); role `admin_user` cria igual na home015, senha bloqueada, só chave (`/etc/ssh/authorized_keys/archaris`, from= desktop), `NOPASSWD: ALL`. Permite Ansible remoto desktop → notebook (flexibiliza "Ansible só local").
+- sshd ativo na home016 (`ssh.socket`) mantido de propósito (Yves, 26/10/2026).
+- Despachante `machine_sync_remote` (só stdlib, Python 3.12): argv exato da lista branca → `os.execve` sem shell; auditoria JSON em `/var/log/machine-sync/` + syslog AUTH; saídas 0/1/2/3/4.
+- Lista branca: `unison -server __new-rpc-mode` (usuário), `unison-root -server __new-rpc-mode` (sudo -n, via `servercmd` no cliente, só com `sshd_sync_server_allow_root_unison`), `machine-sync docker-running` (pré-voo).
+- Roles: `machine_sync_common` (Unison 2.53.x, assert de série), `sshd_sync_server` (home015: authorized_keys root-owned com `restrict,from=,command=`, drop-in sshd, sudoers argv exato, ssh.socket/ssh.service desabilitados + gatilho NetworkManager por UUID, UFW por IP), `sshd_sync_client` (home016: exige `~/.ssh/machine_sync_ed25519` com passphrase, alias `home015-sync`, known_hosts dedicado, remove script CIFS).
+- host_vars reais em `<host>.yml` (gitignored); `.example` versionados com `CHANGE_ME` barrado por assert.
+- ADR-002: Unison servidor como root aceita qualquer raiz pedida pelo cliente → chave de sincronização equivale a root no notebook (risco aceito, mitigado por from=/AllowUsers/UFW/gatilho de rede).
+- Gotcha: `ruff --fix` remove `# -*- coding: utf-8 -*-` (UP009); ignorar UP009 no pyproject.
+- Validação: 64 testes, cobertura 96%, ruff, mypy strict, ansible-lint production, templates renderizados e validados (sshd -t, visudo -cf, bash -n). Hook de secrets: gitleaks (GitGuardian descartado). PR #1 mergeado em 26/10/2026: https://github.com/yvesmarinho/sync-note-desktop/pull/1 (main = commit inicial vazio).
+
+## Passo 2 — orquestrador (26/10/2026)
+
+- PR #2 (empilhado no #1) mergeado na branch do #1 depois do #1 → PR #3 leva o mesmo conteúdo para a `main`: https://github.com/yvesmarinho/sync-note-desktop/pull/3. Gotcha: com PRs empilhados, mergear de cima para baixo ou retargetar para `main` antes.
+- Detecção por **manifesto** (ADR-004): base do último ciclo × manifestos atuais (caminho, tipo, tamanho, mtime, sha256) varridos como root nas duas pontas; Unison só copia (passe principal `-nodeletion`; decisões/renomeações com `-path … -force <vencedor>`).
+- CLI `machine-sync` no home016: `baseline <perfil> --from home016|home015` (1ª vez, exige digitar o perfil), `status` (sem alterações), `sync`.
+- Pré-voo: `sudo -v`, chave no ssh-agent (`ssh-add -t 3600`), `docker ps` vazio nas duas pontas; lixeira > 7 dias limpa no início; base gravada só sem erro (atômica + flock).
+- Sem config SSH de arquivo: o Unison pode rodar como root e o ssh recusa `~/.ssh/config` de outro dono → opções `-o` inline.
+- Lista branca do notebook: `unison[-root] -server __new-rpc-mode`, `machine-sync docker-running|manifest <p>|clean-backups <p>` (root via sudoers de argv exato).
+- Perfis em `group_vars/all.yml` (`machine_sync_profiles`) → `/etc/machine-sync/profiles.json` (duas pontas) e `~/.config/machine-sync/config.json` (desktop).
+- Achado: na pasta piloto há arquivos ilegíveis ao usuário (ex.: `mysql/db_data/binlog.index`) → scanner aborta como usuário; precisa root.
+- Achado 26/10/2026: home015 tinha as **mesmas chaves de host SSH** do home016 (clone); chaves do notebook regeneradas pelo Yves. Verificar `/etc/machine-id` duplicado.
+- Chave `~/.ssh/machine_sync_ed25519` criada com passphrase (guardar em gerenciador de senhas; carregar com `ssh-add -t 1h`).
 
 ## Histórico
 
 - [[daily/2026-10-19]] — análise do plano, resumo, decisões D1–D17, CR-001 e Adendo 01 (sshd com Ansible e Python).
+- [[daily/2026-10-26]] — revisão, correção dos hosts (home016 ↔ home015) e questionários de decisões (deleções, piloto); sshfs descartado em favor de Unison sobre SSH; passo 1 reescrito (PR #1) e passo 2 orquestrador (PRs #2/#3).

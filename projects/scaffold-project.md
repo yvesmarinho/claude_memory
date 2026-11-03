@@ -71,3 +71,13 @@ Ferramenta CLI/scaffold em Python para bootstrap e manutenção de projetos de d
 - PRs dependabot #22 (github-script 7→9), #23 (checkout 4→7), #24 (airflow) foram fechados sem merge — reavaliar se ainda interessam.
 - PR #32 (`.gitignore` graphify-out/) aberto, aguardando merge.
 - Opcional: renomear branch default `master` → `main`.
+
+
+## Gestão de sessão via vault Obsidian (28/10/2026)
+
+- Gestão de sessão migrada para o vault `claude_memory` via MCP `obsidian-rest` (branch `feature/068-session-obsidian-mcp`): o CLI `session-manager.py` não cria mais `docs/SESSIONS/`; só faz MCP/segurança/git/TODO e devolve o campo `vault` (`project_note`, `sessions_dir`, `session_note`). O agente lê/grava as notas com `obsidian_get_file_contents`/`obsidian_append_content`. Motivo: o CLI em Python não consegue chamar MCP.
+- Layout no vault: `projects/<projeto>.md` (resumo durável) + `projects/<projeto>/sessions/YYYY-MM-DD.md` (log do dia). Histórico legado (234 arquivos de `docs/SESSIONS/`, com segredos/IPs redigidos) em `projects/scaffold-project/sessions/<data>/`, frontmatter `tags: [session, scaffold-project, legacy]`.
+- `obsidian-rest` virou servidor MCP obrigatório (`REQUIRED_MCP_SERVERS`) e entra em todos os domínios do `.vscode/mcp.json` gerado pelo scaffold; credenciais só via `${env:OBSIDIAN_API_KEY}`/`${env:OBSIDIAN_HOST}`.
+- Scripts/libs legados de docs de sessão (`session-index/search/chat/validate`, `migrate-daily-activities`, `imp58-usage-logger`, `lib/search.py`, `lib/chat_capture.py`, `lib/session.py`, `lib/session_docs.py` + testes) movidos para `tmp/legacy-session-docs/` (fora do git).
+- `obsidian_patch_content` do mcp-obsidian falha (erro 40084, exige header `Markdown-Patch-Version`) — usar `obsidian_append_content` até atualizar o servidor.
+- Pendência de segurança: `docs/SESSIONS/2026-03-20/ACTION_PLAN_TO_10.md` continha senhas/token com aparência real (vars `vault_*`) e já está no histórico git publicado — rotacionar se forem reais.

@@ -2,12 +2,12 @@
 tags: [project, buzzclubhub, react, typescript, supabase, vite, rls, rbac]
 aliases: [buzzclub, buzzclubhub]
 created: 2026-09-03
-updated: 2026-10-20
+updated: 2026-10-31
 source: sessão de 03/09/2026 (~/.claude/projects/-home-yves-marinho-Documentos-DevOps-buzzclub-buzzclubhub/)
 ---
 
 <!-- Criado em: 03/09/2026 17:45 -->
-<!-- Modificado em: 07/10/2026 20:02 -->
+<!-- Modificado em: 26/10/2026 18:00 -->
 
 # buzzclubhub
 
@@ -557,3 +557,222 @@ mão. Em refatoração/hardening ativo via SpecKit
 - 21/10/2026 — :homolog da main da92882 no DEV. **Reteste via API OK**: A4, A5, A6, A7, A9, A10, A12 (tmp/e2e-reteste-correcoes-dev.mjs 25/25; R8/R9 sem falha real — sem grupo/código vazio é design da spec 009). Chrome não conectou: A13/A14 faltam na tela. **Esquecidos e pendentes de Dev: A3 e parte de tela do A15.** Relatório docs/homologacao/2026-10-21-relatorio.md (PR docs-homologacao-reteste). PV-0017 aprovado (P3).
 - 21/10/2026 — **A3 e A15 (tela) corrigidos** (branch fix-menu-configuracoes-cancelar-pv): rodapé Configurações com checkAccess; Cancelar PV com confirmação. Todos os achados de Dev resolvidos; restam tela (A13/A14 + estes), Diretoria e P3.
 - 21/10/2026 16:33 — **Fim da sessão.** PRs #88–#94 mergeados; #95 (relatório do reteste) e #96 (A3/A15) abertos. Todos os achados de Dev da homologação corrigidos; migrations 20261021100000–140000 só no DEV. Próximo: merge #95/#96 → :homolog → tela no Chrome (A3, A13, A14, A15) → pauta da Diretoria (A1, A2, A8/A15, campaigns, Fechado pelo painel) → P3. Detalhe em [[../daily/2026-10-21|daily/2026-10-21]].
+- 26/10/2026 — **Importação de influenciadores elevada a prioridade nº 1** (topo de ROADMAP_NEXT + seção no docs/TODO.md; branch docs-prioridade-importacao-influenciadores). Já existe src/components/influencers/ImportInfluencersDialog.tsx (legado Lovable, 1.069 linhas): fora do ImportWizardDialog comum, insert direto no supabase (sem hook), descarta instagram/tiktok/youtube_url. Sem spec ainda — próximo: /speckit-specify.
+- 26/10/2026 — Feedback de teste da Nathalia (parte 1, via Audrey; docs/feedback/) registrado no TODO: Tuesday — status não atualiza sem recarregar (Meu Trabalho e Task; provável invalidação de query), clique na categoria não navega, Visão Geral mostra concluídas como abertas; sugestões: concluídas no fim/grupo próprio, cabeçalho sticky na Prospecção. Parte 2 prevista para esta semana.
+- 27/10/2026 11:35 — **Spec 014 (importação de influenciadores) — MVP no PR #98** (branch 014-importacao-influenciadores; #97 mergeado). Decisões: repetido = e-mail OU CPF/CNPJ OU @Instagram (2 cadastros → conflito); repetido só preenche campos vazios; divergências (preenchido nos dois lados e diferente, após normalização) viram relatório pós-importação, sem relatório se tudo igual; links IG/TikTok/YT em colunas próprias; só nome obrigatório; colunas por cabeçalho (sem mapeamento manual). **Achado:** influencers gravável por qualquer interno → migration 20261027100000 (escrita só módulo creators + 3 colunas *_url) aplicada só no DEV, verificação 10/10. MVP: src/lib/influencerImport.ts, useImportInfluencers, ImportInfluencersWizard (legado removido), ImportWizardDialog.checkMissingColumns. Gates locais verdes (1368 testes). Próximo: US2 (repetidos + relatório; T008 extraReport/status duplicate) → US3/US4. Gotcha: cabeçalho da planilha = união das chaves de todas as linhas (sheetHeaders), não só da 1ª.
+- 27/10/2026 12:00 — **Spec 014 US2 no PR #99** (branch 014-us2-repetidos-influenciadores, depende do #98). Repetido por e-mail/CPF/@Instagram: relê o cadastro na gravação e completa só vazios (null/""/[]/false/0 numérico = vazio); divergências → relatório "Já cadastrados com dados diferentes" (só se houver); conflito 2+ cadastros e repetição na planilha recusados; base indisponível (InfluencerLookupError) bloqueia. ImportWizardDialog ganhou status duplicate + summary + extraReport (ImportExtraReport). Base DEV: 1 @Instagram em 2 cadastros (vira conflito). Gates verdes (1393). Próximo: US3 (links no cadastro: Edit/Create/ProfileCard) + US4 (botão importar só com módulo) + T036/T037.
+- 27/10/2026 12:30 — #98 e #99 mergeados. **Spec 014 US3 no PR #100** (branch 014-us3-us4-influenciadores): "Link do perfil" em Novo/Editar (IG/TikTok/YT, src/lib/influencerLinks.ts), cartão usa link gravado (senão monta pelo @). US4 dispensada na tela: /influenciadores já sob ModuleGuard + RLS. **Sobreposição aberta:** influencer_social_metrics.profile_url (métricas detalhadas) é outro link por rede — unificar a decidir. Gates verdes (1408). Falta só T037: quickstart na tela com :homolog no DEV + limpar E2E-.
+
+
+## 27/10/2026 — Spec 014 (importação de influenciadores) + análise de usuários + fix usuário inativo
+
+- **Spec 014** mergeada (PRs #98–#100): assistente comum, repetidos (e-mail/CPF/@Instagram) só completam campos vazios, relatório de divergências, links de perfil editáveis, escrita em `influencers` exige módulo `creators`. T037 (validação na tela com planilhas `tmp/e2e-014/`) aguardando o usuário; depois apagar massa `E2E-`.
+- **Análise do cadastro de usuário** (`docs/analise/CADASTRO_USUARIO_COMPLETO.md`, questionário Q1–Q26 respondido). Modelo decidido:
+  - **Perfil** = conjunto de permissões `módulo.ação` (estilo Flask), 1 por usuário, sem exceção por usuário;
+  - **Cargo** e **Área** = cadastros informativos, 1 cada, independentes, só inativados;
+  - perfil novo **Diretoria** (mantém áreas/cargos/perfis, não é admin técnico);
+  - ficha com todos os campos obrigatórios + CPF e dados bancários (visíveis só Admin/Diretoria/Financeiro); gestor opcional só para Diretoria;
+  - desligamento = inativar com data de saída; pendências vão ao gestor (ou a alguém da Diretoria); excluir só convite não aceito.
+  - Entregas: fix 6.1 → **Spec A** (cadastros + ficha) → **Spec B** (permissões atômicas por perfil).
+- **Fix "usuário desativado mantinha acesso"** (PR #101, merge `dc2d4b0`, imagem `:homolog` = `sha-dc2d4b0`, **validado na tela pelo usuário**):
+  - migrations `20261027150000` e `20261027151000`: `is_active_user()`; `is_internal_user`, `has_role`, `has_module_access`, `is_admin`, `can_manage_sales_orders`, `has_sales_order_full_access` e policies de `app_settings`/`financial_events` exigem ativo; gatilho impede alterar `is_active` pela API; ban no Auth de quem já estava inativo;
+  - edge function `user-status` (só admin; ativa/desativa + ban no Auth; admin não desativa a si mesmo);
+  - verificação SQL 19/19, `test:security` 271/271 no DEV.
+  - **Pendente produção** (congelada): aplicar as 2 migrations e publicar `user-status`.
+- Lições: o CLI do Supabase está *linkado à produção* nesta pasta — publicar no DEV sempre com `--project-ref` do DEV via script que recusa o ref de produção. Tokens do CLI (dev e prod) foram renovados em 27/10/2026. `tmp/apply_migrations_dev.py` tem lista fixa: incluir cada migration nova.
+
+
+### 27/10/2026 17:15 — Spec 015 iniciada (cadastro completo de usuário)
+
+- Fix usuário inativo (PR #101) **validado na tela pelo usuário** no DEV (`sha-dc2d4b0`). Produção ainda pendente (congelada): 2 migrations + função `user-status`.
+- Branch `015-cadastro-usuario-completo` (da main `dc2d4b0`); `specs/015-cadastro-usuario-completo/spec.md` + `checklists/requirements.md` escritos, **ainda não commitados**.
+- 5 user stories: Áreas/Cargos (P1), convite com ficha completa + status/reenvio/excluir pendente (P1), ficha com CPF/dados bancários restritos a Admin/Diretoria/Financeiro (P1), desligamento com transferência tudo-ou-nada ao gestor/Diretoria (P2), "cadastro incompleto" sem bloquear acesso (P3). 30 FRs, 7 SCs.
+- Premissas a confirmar com o usuário antes do `/speckit-plan`: Diretoria = módulos de Gestão + manutenção de usuários/áreas/cargos (sem SMTP/manutenção); perfil duplicado → mantém o de maior acesso; máscara com 2 últimos dígitos; foto enviada pelo admin (até 5 MB); e-mail de login fixo; reativar não devolve itens transferidos.
+- Pendências gerais: T037 (spec 014, validação na tela + limpar massa `E2E-`); Spec B (permissões atômicas por perfil) depois da 015.
+
+- 28/10/2026 09:40 — **Spec 015: premissas aprovadas e plano feito** (branch 015-cadastro-usuario-completo, commits 422745a spec + 8719395 plano; sem PR ainda). Decisões: áreas/cargos em `user_departments`/`job_titles` (área única em `profiles.area_id`; `user_areas` vira legada); CPF/banco em `user_sensitive_data` com RLS admin/diretoria/financeiro + máscara via função; `user_roles` UNIQUE(user_id) após deduplicar; `can_manage_users()` = admin ou diretoria; ficha gravada só por RPC; edge `user-admin` (list/invite/resend/delete_invite) e `user-status` v2 com RPC `offboard_user` tudo-ou-nada. **Achado:** `clients` não tem responsável → fora da transferência (spec ajustada). ADR-008 previsto antes do PR 1. 5 PRs (US1→US5). Próximo: /speckit-tasks.
+- 28/10/2026 09:46 — Spec 015 tasks.md: 56 tarefas, 8 fases, 5 PRs (commit seguinte ao 8719395). MVP = Foundational + US1. Próximo: /speckit-implement.
+- 28/10/2026 10:25 — **Spec 015 MVP (Base + US1) implementado**, commit 7186097 na branch 015-cadastro-usuario-completo (sem PR ainda). T001–T019 feitas: perfil `diretoria` (gestão + configuracoes), perfil único (UNIQUE user_roles.user_id; DEV não tinha duplicados), `can_manage_users`/`can_view_sensitive`, `requireUserManager` (_shared/admin.ts, ainda não publicado), `user_departments`/`job_titles`, área única em `profiles.area_id` via RPC `set_user_area` (15 usuários do DEV tinham várias áreas → ficou a mais antiga, log em `user_area_migration_log`), aba Configurações → Áreas e Cargos, Acessos com seletor de área. ADR-010 (ADR-008/009 já existiam). Migrations 20261028100000/100100/100200 só no DEV; verif US1 13/13; test:security 278/278; vitest 1459. **Pendências:** ggshield sem chave em .secrets (só o hook local rodou); usuário ainda pode alterar o próprio area_id pela policy "Users can update own profile" até o guard da T024 (US2); invite-user com `diretoria` só vale após publicar (T032).
+- 28/10/2026 10:12 — Revisão de segurança automática do 7186097 apontou: usuário alterava o próprio area_id/job_title_id (policy 'Users can update own profile'). Corrigido no commit 43755b0: migration 20261028100250 (gatilho exige can_manage_users), aplicada só no DEV; verif US1 15/15, test:security 278/278. Pendência 2 do MVP encerrada.
+
+
+## 28/10/2026 11:30 — Spec 015 US2: convite com ficha completa (concluída no DEV)
+
+- **Status**: commit `2c0d5b1` na branch `015-cadastro-usuario-completo`; o PR #102 foi aberto antes, com o MVP (`7186097` + `43755b0`).
+- **Objetivo**: o convite passa a exigir a ficha completa. A lista mostra a situação do convite, com opções de reenviar e excluir.
+- **Banco** (só DEV):
+  - `20261028100300` ficha: `manager_id`, `hired_on`, `terminated_on` e `invited_at` em `profiles`; `user_audit_log`; RPC `update_user_record`.
+  - O gatilho `profiles_guard_fields` substitui o `profiles_guard_area_job_title`. Ele usa a marca de transação `buzzclub.user_record_write`, ligada só pelas RPCs DEFINER, e `set_user_area` passou a ligá-la.
+  - `20261028100400` `user_sensitive_data`: leitura via RLS com `can_view_sensitive`; gravação só pela RPC `update_user_sensitive`; funções `is_valid_cpf` e `user_sensitive_masked`.
+  - `20261028100500` bucket privado `user-avatars`: até 5 MB; envio só por quem passa em `can_manage_users`.
+- **Edge**: `_shared/userAdmin.ts` atende `user-admin` v1.0.0 e o alias `invite-user` (action forçada `invite`). As duas funções foram publicadas no DEV via `tmp/sb-dev.sh deploy`.
+- **Front**:
+  - `useUserAdmin` sobe a foto para `invites/<uuid>` antes do convite e a apaga se o convite falhar.
+  - `InviteUserDialog` reescrito com a ficha completa.
+  - Na `SettingsPage`, a lixeira genérica foi removida; ficaram Reenviar e Excluir convite, só para pendentes, e a Diretoria também convida.
+  - O `useInviteUser` antigo foi removido de `useProfileRoles`.
+- **Decisões**:
+  - O alias `invite-user` também exige a ficha completa: a imagem antiga recebe `invalid_input`.
+  - A RLS de `profiles` só deixa o Admin fazer UPDATE em outras pessoas, e o gatilho barra até o Admin fora da RPC.
+- **Verificação**:
+  - vitest 1563/1563; test:security 286/286; cobertura 116/116; SQL `tmp/verif-015-us2.sql` 46/46; a US1 continua OK.
+  - Smoke `tmp/smoke-user-admin.mjs` no DEV: recusas e fluxo completo ok.
+- **Pendências**:
+  - Ficou no DEV o cargo "Cargo de teste E2E", porque não havia nenhum cargo cadastrado.
+  - ggshield sem chave.
+  - Próximo passo: US3 (T033–T039).
+
+
+## 28/10/2026 — Spec 015 US2: correção de segurança no user-admin (`9dd1b34`)
+
+- **Achados da revisão automática**:
+  - A Diretoria podia convidar alguém como Admin, o que daria acesso indireto a SMTP e manutenção.
+  - As ações resend e delete_invite aceitavam qualquer conta do Auth que ainda não tivesse confirmado o e-mail.
+- **Correção**:
+  - Só Admin convida Admin; o diálogo esconde a opção Admin para quem não é Admin (`canGrantAdmin`).
+  - O alvo de resend e delete_invite precisa ser interno (ter `profiles` e `user_roles`); convite pendente de Admin só Admin altera.
+- **Verificação no DEV**:
+  - O usuário E2E `gestao` foi promovido a Diretoria só durante o teste e restaurado em seguida.
+  - Resultado: 403 nos três casos, 404 para um id fora dos internos.
+  - vitest 1565/1565; test:security 286/286.
+- **Gotcha**: no zsh, `GID` é variável reservada; usar outro nome em scripts.
+
+
+## 28/10/2026 — Spec 015 US3: ficha do usuário (`b32cebc`, PR #102)
+
+- **Banco** (migration `20261028100600`, só no DEV):
+  - RPC `set_user_role`: DEFINER, exige `can_manage_users`; só Admin concede ou retira Admin; registra auditoria `role` só quando o perfil muda.
+  - Policy `user_roles_select_staff`: leitura com `can_view_sensitive`.
+- **Front**:
+  - `userRecordValidation.ts` (patches zod em que vazio vira null); `useUserRecord` (completo ou mascarado conforme o papel); `useSaveUserRecord` (foto → ficha → perfil → sensíveis, cada um pela sua RPC).
+  - `UserRecordDialog`; botão "Ficha" na lista.
+  - `useAssignRole` passou a usar `set_user_role` em vez de delete + insert.
+- **Decisão**: o salvamento da ficha não é atômico entre as 3 RPCs (ficha, perfil, sensíveis). Se uma falhar no meio, as anteriores ficam gravadas, e o erro é mostrado.
+- **Verificação**:
+  - vitest 1612/1612; test:security 287/287.
+  - SQL: US3 20/20, US2 46/46, US1 15/15.
+- **Próximo**: US4 (desligamento com transferência, T040–T047).
+
+
+## 28/10/2026 — Spec 015 US3: ficha tudo ou nada (`16b86ad`)
+
+- **Decisão do usuário**: salvar a ficha é tudo ou nada.
+- **Banco**: RPC `save_user_record(_user_id, _record, _role, _sensitive)` na migration `20261028100700` (só no DEV). Ela chama as 3 RPCs numa transação, e cada uma mantém a sua checagem de papel.
+- **Foto**:
+  - Upload em `<id>/avatar-<uuid>.<ext>` com `upsert: false`.
+  - Se o banco recusar, a foto nova é removida.
+  - Com sucesso, a anterior é removida (`previousAvatarUrl`).
+- **Verificação**: SQL US3 26/26; vitest 1614/1614; test:security 287/287.
+
+
+## 28/10/2026 — Spec 015 US4: desligamento com transferência (`82737c9`, PR #102)
+
+- **Banco** (migration `20261028100800`, só no DEV):
+  - `user_offboarding_log`.
+  - `offboarding_counts`: interna, sem grant.
+  - `offboarding_preview`: chamada por Admin/Diretoria.
+  - `offboard_user` e `reactivate_user`: checam `auth.role() = 'service_role'` e respondem `forbidden` para os demais.
+- **Regras de transferência** (decididas):
+  - Tarefas: status fora de done/cancelled; responsável e lista `assigned_to`, sem duplicar.
+  - Projetos: draft/active/waiting.
+  - PVs: draft/analysis.
+  - Workspaces: o gestor entra com o mesmo papel e a pessoa sai.
+- **Edge `user-status` v2.0.0** (publicada só no DEV):
+  - Chama a RPC antes do ban; `already_inactive` reaplica o ban (idempotente).
+  - Só Admin desliga Admin.
+- **Front**: `useOffboardingPreview`; `OffboardUserDialog` no selo Ativo; `useSetUserActive` invalida todo o cache.
+- **Verificação**:
+  - SQL US4 31/31; vitest 1645/1645; test:security 289/289.
+  - Smoke real no DEV, com convite de teste excluído e perfil E2E restaurado.
+- **TDD**: o teste do diálogo foi escrito na mesma rodada do componente, sem rodar o vermelho antes; os demais passos seguiram vermelho → verde.
+- **Próximo**: US5 (cadastro incompleto) e polimento.
+
+
+## 28/10/2026 — Spec 015 US4: correção de segurança (`05e1fd4`)
+
+- **Achado 1**: `has_role` ignora usuário inativo, então a Diretoria conseguia reativar um Admin desligado.
+  - Correção na edge: o papel do alvo passa a ser lido em `user_roles`.
+  - Correção no banco: `offboard_user` e `reactivate_user` exigem `_performed_by` Admin ativo quando o alvo é Admin (migration `20261028100900`, só no DEV).
+- **Achado 2**: a reativação liberava o login antes do banco, e o rollback bloqueava qualquer conta, mesmo as que não são de usuários internos.
+  - Correção: banco primeiro (`user_not_found` para quem não é interno), liberação do login depois; a falha dessa etapa devolve `unban_failed`, que pode ser repetido.
+- **Gotcha**: `has_role` e `is_admin` exigem ativo desde o PR #101. Para regras sobre um alvo que pode estar inativo, ler `user_roles` direto.
+- **Verificação**: SQL US4 35/35; smoke no DEV; test:security 289/289; vitest 1646/1646.
+
+
+## 28/10/2026 — Spec 015 US5 + polimento (`2190dcb`, PR #102)
+
+- **Cadastro incompleto**:
+  - Regra única na ação `list` da `user-admin`; só ativos (inativos deixaram de ser marcados).
+  - Desvio do plano: a view `user_record_status` não foi criada.
+  - `src/lib/userRecord.ts` traz os rótulos e os filtros; a lista tem a marca, "Falta: ..." e filtros (aria-pressed).
+- **SC-005 no DEV**:
+  - Perfis por usuário e contagens iguais à linha de base; nenhum ativo perdeu acesso.
+  - 23 ativos incompletos; os 12 sem perfil aparecem com "Perfil" entre os faltantes.
+- **Documentação**: manual de Gestão (Configurações), CLAUDE.md (seção de usuários), roadmap, ROADMAP e REGRAS.
+- **Gate**: vitest 1662/1662; test:security 289/289; cobertura 117/117; build OK.
+- **Pendente**:
+  - T056: quickstart com a imagem `:homolog`.
+  - Produção: nada aplicado (migrations `20261028100000`–`100900` e funções user-admin, invite-user e user-status só no DEV).
+  - ggshield sem chave.
+
+
+## 28/10/2026 — Imagem da spec 015 publicada
+
+- O PR #102 foi mergeado na main (`024c086`).
+- `scripts/docker-build.sh` publicou `techbuzzclub/buzzclubhub:homolog` e `:sha-024c086` (o mesmo digest).
+- `:latest` (produção) não foi movida.
+- Próximo: subir a homologação com a `:homolog` e rodar o T056 (quickstart). As migrations `100000`–`100900` e as funções `user-admin`, `invite-user` e `user-status` existem só no DEV; a promoção exige aplicá-las em produção (aguarda a liberação do ambiente).
+
+
+## 28/10/2026 — Correção: Configurações > Usuários (PR #103)
+
+- **Relato**: os ícones não tinham explicação e o perfil aparecia duas vezes na linha.
+- **Causa**:
+  - A coluna Ações repetia o perfil (escudo + nome), sobra do layout antigo.
+  - Os ícones tinham só `title`, e o clique em Ativo/Inativo não estava explicado.
+- **Correção**:
+  - Perfil removido da coluna Ações.
+  - Legenda (`role="note"`) por papel acima da tabela.
+  - Tooltips com `TooltipProvider` local.
+- **Verificação**: testes escritos antes; vitest 1666/1666. Não houve conferência visual no navegador.
+- **Bug report**: `docs/bugs/2026-10-28-usuarios-icones-e-perfil-repetido.md`.
+
+- 28/10/2026 — Homologação: usuário validou com sucesso todos os itens da tela de cadastro de usuários (spec 015 + PR #103), imagem `:homolog`/`:sha-4864336`. Produção ainda não aplicada (migrations 20261028100000–100900, functions user-admin/invite-user/user-status, promote).
+
+### 28/10/2026 14:58 — Acessos aos módulos na lista de usuários (PR #104)
+- Objetivo: tirar a aba Configurações → Acessos e ajustar módulos pela lista (ícone só Admin, decisão do usuário: Opção B; Diretoria não vê).
+- Decisões: perfil e área só na ficha (fim da edição duplicada); RPC `set_user_module_overrides` tudo ou nada e auditada (`user_audit_log.field = 'modules'`); escrita direta em `user_module_permissions` fechada, Admin só lê.
+- Arquivos: migration `20261029100000_acessos-modulos-rpc.sql`, `useModuleAccess.ts`, `ModuleAccessDialog.tsx`, `SettingsPage.tsx`; removidos `AccessManager` e `useUserAccess`.
+- Verificação: TDD (vermelho → verde), 1669 testes, test:security 291/291 no DEV (env em `.secrets/buzzclub-supabase-dev.env`; o `supabase-dev.env` aponta para projeto antigo), SQL 10/10. Migration só no DEV.
+- Achado: item do TODO "send-to-zapsign sem validar chamador" já estava corrigido (`59abaa0`).
+
+### 28/10/2026 — Imagem homolog dos acessos aos módulos
+- PR #104 mergeado (`d63e925`); imagem publicada `techbuzzclub/buzzclubhub:homolog` e `:sha-d63e925` (digest `sha256:c28ed4c4…`); `:latest` intacta.
+- Status: aguardando validação na homologação (Admin vê ícone de grade "Acessos aos módulos"; Diretoria não vê; aba Acessos removida).
+- Produção continua aguardando (decisão do usuário em 28/10/2026). Pendências para produção: migrations `20261028100000`–`20261029100000`, edge functions `user-admin`, `invite-user`, `user-status`, depois `docker-promote.sh` e roadmap `em_validacao` → `no_ar`.
+- Dica operacional: `test:security` local usa `.secrets/buzzclub-supabase-dev.env` (o `supabase-dev.env` aponta para projeto antigo inexistente).
+- Matriz de acessos por função (FB-2026-005): ver [[buzzclubhub-matriz-de-acessos]] — catálogo no banco (`access_*`, PR #107), base do futuro RBAC atômico.
+- Release para a produção (29/10/2026, PR #110): `scripts/release_prod.py` (status/backup/migrate/functions/verify, `--env dev|prod`; produção exige `--apply --confirm PRODUCAO`) + `docs/guides/RELEASE_PRODUCAO.md`. Substitui `tmp/apply_migrations_dev.py`.
+- Registro `schema_migrations` herdado do Lovable não bate com os arquivos (versões diferem segundos, sem nome): usar corte `--baseline 20260930000000` — o anterior veio no backup restaurado.
+- Edge functions pendentes = publicação anterior ao último commit da função ou de `_shared` importado; mudança em `_shared/admin.ts` exige republicar várias funções.
+- Ensaiar release antes da produção: restaurar o backup prod em `public.ecr.aws/supabase/postgres:17.6.1.165` local (tmp/ensaio_release.py) e aplicar as migrations — pegou dependência fora de ordem que o DEV não mostrava (29/10/2026).
+- Produção roda PostgreSQL 17.6: backup exige `release_prod.py backup --pg-dump-image postgres:17` (pg_dump local é 16; Docker com rede do host por causa do IPv6).
+
+
+## 29/10/2026 (tarde) — decisões duráveis
+- **Financeiro**: `financial_transactions` e `invoices` seguem `can_manage_finance` (Admin, Diretoria, Financeiro).
+  - Módulo projetos lê só o que tem projeto; módulo campanhas lê só NF de campanha.
+  - Fluxos de fora do Financeiro só por RPC ou trigger DEFINER.
+- **Contrato assinado** não gera NF (gatilho removido; decisão de 29/10). Gatilho novo em avaliação (TODO 5c).
+- **Portal do cliente**: tudo pela edge function `client-portal-auth`, com a autoria vinda do token. Regras puras em `_shared/portalTaskRules.ts`, testadas no vitest.
+- **Release de 31/10**: código congelado na tag `release-2026-10-31`. Rodar a partir de um worktree da tag (o `release_prod.py` lê as migrations da pasta em que roda).
+- **Spec 016 (relatórios de atividade)**: ADR-011 em Proposta.
+  - Admin e Diretoria veem os relatórios e não são monitorados; Tech cadastra feriados.
+  - Proposta pendente: sessões via gatilho em `auth.sessions` + `session_id` do JWT + `pg_cron` encerrando abas fechadas.
+
+
+## 31/10/2026 — Release de produção aplicada
+- Produção na tag `release-2026-10-31` (`07ed2b6`): schema e funções em dia, test:security 311/311. Detalhes em [[2026-10-31]].
+- Commit enviado a branch depois do merge do PR fica fora da main: conferir o ensaio contra a tag antes da janela (caso `20261028100050`).
+- Se a release sair de tag e a tela de manutenção for incerta, parar o site antes do backup.
+- PRs #113–#118 seguem fora da produção.
