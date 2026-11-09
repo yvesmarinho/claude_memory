@@ -1,3 +1,10 @@
+---
+tags: [reference, tdd, ai]
+aliases: ["Your AI Code Breaks Because You Skip This — AI-Driven TDD"]
+source: https://www.youtube.com/watch?v=clUR-k-tQIg
+created: 2026-11-09
+updated: 2026-11-09
+---
 
 O vídeo intitulado **"Your AI Code Breaks Because You Skip This — AI-Driven TDD"** do canal _Geekific_ aborda como transformar o uso de Inteligência Artificial no desenvolvimento de software, aplicando os conceitos de **Desenvolvimento Orientado a Testes (TDD)** para gerar códigos mais resilientes e seguros ([1:23](https://www.youtube.com/watch?v=clUR-k-tQIg&t=83s)).
 

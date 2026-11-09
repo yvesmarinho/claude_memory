@@ -1,5 +1,5 @@
 <!-- Criado em: 16/09/2026 09:00 -->
-<!-- Modificado em: 16/09/2026 10:57 -->
+<!-- Modificado em: 09/11/2026 10:23 -->
 
 # Arquivo — Mini-Engram Memory System (scaffold-project)
 
@@ -12,7 +12,7 @@ do stage, `.memory/` adicionado ao `.gitignore`. README e MEMORY_POLICY
 preservados abaixo por documentarem a arquitetura da feature (útil caso o
 subsistema seja reativado/commitado no futuro).
 
-Ver nota [[../projects/scaffold-project|scaffold-project]] para o resumo.
+Ver nota [[scaffold-project]] para o resumo.
 
 ---
 

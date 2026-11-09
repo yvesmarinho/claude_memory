@@ -1,10 +1,10 @@
 ---
 tags: [moc, index]
 created: 2026-08-03
-updated: 2026-10-26
+updated: 2026-11-09
 ---
 
-<!-- Modificado em: 26/10/2026 15:42 -->
+<!-- Modificado em: 09/11/2026 10:23 -->
 
 # 00 — Índice mestre (Map of Content)
 
@@ -44,12 +44,17 @@ Ponto de entrada da memória. Consulte antes de responder.
 - [[praxisforge]] — curadoria e engenharia de agentes para Claude (agentic AI), skills/templates e fontes com proveniência
 - [[consulta-ai-ia-br]] — produto de automação com IA dirigida por especificação (SDD), consultor que debate até a spec completa; em descoberta
 - [[deskcommcrm]] — adaptação do DeskcommCRM (CRM WhatsApp + IA) para Vya.Digital: Supabase self-hosted, homolog/prod, Traefik; levantamento concluído
-- [[workstation-update-tools]] — script ~/scripts/update-tools.sh: checa e atualiza ferramentas fora do apt (uv, uv tools, claude, ollama, rust/cargo, omz, atuin)
+- [[workstation-update-tools]] — script ~/.local/bin/update-tools.sh: checa e atualiza ferramentas fora do apt (uv, uv tools, claude, ollama, rust/cargo, omz, atuin, node/nvm, terraform + tftools, kula, aws, sublime)
 - [[auditoria-seguranca-repositorios]] — auditoria e resposta a incidente (RAI-2026-001/002/003): repositórios GitHub, revogação de credencial de banco após Red Team de cliente, processo padrão, lições e pendências
 - [[plano-auditoria-repositorios-publicos]] — checklist priorizado (P0–P3) de auditoria dos repositórios públicos da conta
 - [[seaux]] — SEAUX: plano de força de vendas digital com IA (divulgação em redes, publicação agendada, agente de vendas com handoff humano); planejamento
 - [[sincronizacao-desktop-notebook]] — machine-sync: sincronização bidirecional desktop home016 ↔ notebook home015 (Mint 22) com Unison sobre SSH e Ansible; repo yvesmarinho/sync-note-desktop, passo 1 (sshd restrito) mergeado, passo 2 (orquestrador machine-sync) em PR
 <!-- adicione links para projects/*.md conforme forem criados -->
+
+## Referências
+
+- [[ai-driven-tdd-geekific]] — vídeo Geekific: TDD orientado por IA (contrato, exceções semânticas, testes de falha antes do código)
+<!-- references/*.md -->
 
 ## Skills
 

@@ -2,12 +2,12 @@
 tags: [project, enterprise-ansible, ansible, infra, vps, fwknop, ssh-spa, cloudflare-zero-trust, speckit, debian, security-update]
 aliases: [enterprise-ansible, ansible enterprise, ssh-spa repo]
 created: 2026-08-26
-updated: 2026-11-02
+updated: 2026-11-08
 source: sessão Claude Code 2026-08-26 (feature 006-server-inventory) + 2026-08-27 (plano security-update) + CLAUDE.md do repo + .specify/memory/constitution.md
 ---
 
 <!-- Criado em: 26/08/2026 17:05 -->
-<!-- Modificado em: 02/11/2026 12:46 -->
+<!-- Modificado em: 08/11/2026 17:28 -->
 
 # enterprise-ansible
 
@@ -185,3 +185,63 @@ Detalhes e achados por host: `[[../daily/2026-10-28|2026-10-28]]`.
 - **Banco:** IP do `wait-for-it` é o do wfdb02 (porta 5432, PgBouncer). Na stack nova: `DB_HOST=host.docker.internal`, `extra_hosts` com `host-gateway` e `command` do `wait-for-it` ajustado.
 - **Compose e imagem:** origem em `~/VyaJobs/enterprise-docker/kutt/wf001/kutt-vya/`; Dockerfile em Kutt v3.2.3. Sem volumes. Hostname `link.vya.digital`; resolver novo `letsencrypt`, porta interna 3000, sem publicar 3003.
 - **Pendências:** conferir `REDIS_ENABLED`; validar acesso de `172.20.%` ao banco; manter `JWT_SECRET`; incluir o hostname na regra SSL strict antes do DNS. `.secrets/kutt.env` existe e não foi lido.
+
+## 08/11/2026 12:49 — Status da migração para o wfdb02
+
+- **Migrados para o wfdb02** (confirmado pelo usuário): ajuda, Dashy, Adminer, Metabase.
+- **Metabase** saiu da fila de pendentes (item 6 de 01/11).
+- Fila restante: Redis e RabbitMQ consolidados, Kutt, Synesis, synChat, n8n; definir Perfex e Passbolt antes de desligar o wf001.
+
+## 08/11/2026 15:27 — Lista v2.2, BookStack e próximas APIs
+
+- **Migrados e ativos no wfdb02:** Adminer, Dashy, ajuda (BookStack), Metabase, Kutt. Kutt: verificar Redis. Substitui a fila de 12:49.
+- **Lista de containers v2.2** (`tmp/wfdb02/containers-migracao-wfdb02-v2_1.md`): status novos 🧪 Migrar, validar e desligar (Hubs, hermes #32–#34) e 📦 Copiar e desligar (Perfex, agentes #35–#38, observabilidade do wfdb01). Passbolt, `prod-collector-api` e `rabbitmq-exporter` descartados. SEAX/Supabase: stack completa no wfdb02, revisar recursos.
+- **Labels do Traefik nos composes do wf001 não servem:** usavam `certresolver=lets-encrypt` (no wfdb02 é `letsencrypt`) e, no BookStack, `loadbalancer.server.port=443` (imagem linuxserver expõe 80 e 443; tem que ser 80). Sintoma: nginx "400 The plain HTTP request was sent to HTTPS port".
+- **Cloudflare Rocket Loader quebra apps com CSP por nonce** (BookStack): reescreve o `type` dos scripts e o loader é bloqueado pela CSP; nenhum JS roda (menus não abrem). Manter Rocket Loader off nos hostnames do wfdb02, junto da regra "wfdb02 - SSL strict".
+- **Editar a regra da Cloudflare pode devolver o 418:** depois de mudar a configuração do hostname, conferir que ele continua em Full (strict).
+- **Firewall:** bancos liberados só para 172.20.0.0/16 e 172.29.0.0/24; stacks em rede nova (172.30.0.0/16) não alcançam o banco. Usar `app-network` ou ampliar `fw_redes`.
+- **Não reexecutar `docker-wfdb02-bookstack.yml` para corrigir** o que está no ar: ele recopia o `/config` do wf001.
+- **APIs (api012, api013, Hub auth/people):** composes não estão no `enterprise-docker`; descoberta via `tmp/wfdb02/descoberta-apis.sh` (somente leitura, mascara segredos, lista clientes conectados nas portas publicadas). Próximo: gerar `docker-wfdb02-apis.yml`.
+- Detalhes: [[2026-11-08]].
+
+
+## 08/11/2026 16:10 — Redis e RabbitMQ consolidados (playbooks, sem execução)
+
+- **Descoberta somente leitura** (`tmp/wfdb02/descoberta-redis-rabbitmq.sh`, saída em `tmp/wfdb02/descoberta-mq-*.txt`): Redis wf001 7.4.2, wfdb01 8.4.0; RabbitMQ 3.13.7 nos dois, **sem uso** (0 conexões, 0 mensagens, só vhost `/`). A URL AMQP do n8n aponta para um vhost/usuário inexistente; o Evolution tem `RABBITMQ_ENABLED=false`.
+- **Mapa de DBs no wfdb02:** 1 chat-vya-digital (wfdb01 db2), 2 synChat (wf001 db8, presumido), 3 chatSynesis (wfdb01 db7), 4 n8n Bull (wf001 db10), 5 Evolution (wf001 db2), 6–11 reservados para DBs de dono desconhecido, 12 Kutt. Valida o mapa do plano; o do `.tgz` fica descartado.
+- **Destino:** Redis 8.4.0 (um DUMP/RDB do 8.4 não carrega no 7.x); RabbitMQ limpo, com vhosts/usuários `n8n` e `evolution`. Nada publicado; aliases `redis.vyadigital`/`rabbitmq.vyadigital` na `app-network`; management em 127.0.0.1:15672.
+- **Achados:** Redis/RabbitMQ publicados em 0.0.0.0 nos dois hosts de origem, com cliente externo no Redis db0. O chat-vya-digital **ainda está conectado ao Redis do wfdb01**, o que contradiz o "migrado" de `docs/containers-migration.txt`. O Erlang cookie do RabbitMQ do wf001 vazou no chat: considerar comprometido até o desligamento.
+- **Arquivos (sem commit):** `services/docker/playbooks/docker-wfdb02-{redis,rabbitmq}{,-rollback}.yml`. Segredos em `.secrets/wfdb02-mq.yml` (vault): `wfdb02_redis_password`, `wfdb02_rabbitmq_passwords`. Lint e syntax-check OK.
+
+## 08/11/2026 16:00 — Redis e RabbitMQ aplicados no wfdb02
+
+- **No ar e saudáveis:** `redis` (8.4.0, noeviction, 32 DBs, AOF) e `rabbitmq` (3.13.7, vhosts `n8n`/`evolution`, um usuário por aplicação), na `app-network` com aliases `redis.vyadigital`/`rabbitmq.vyadigital`. Segunda execução dos dois playbooks: `changed=0`.
+- **Teste a partir da app-network:** Redis sem senha responde `NOAUTH`; AMQP 5672 alcançável. Nada publicado além de `127.0.0.1:15672` (management).
+- **Segredos** em `.secrets/wfdb02-mq.yml` (vault), com senhas geradas e nunca exibidas. O `ansible-vault encrypt` não aceita `--vault-password-file` porque o `ansible.cfg` já define o vault-id (erro "vault-ids default,default").
+- **Gotchas corrigidos no playbook do RabbitMQ:** `rabbitmq-diagnostics ping` fica saudável antes de o app `rabbit` subir (usar `check_running`); a checagem `'5672/tcp' in ...` casava com `15672/tcp`.
+- **Ainda sem consumidores.** Próximo passo: migrar os DBs com DUMP/RESTORE e trocar o `REDIS_URL` de cada aplicação na sua onda. As correções do playbook do RabbitMQ ainda não foram commitadas no PR #9.
+
+## 08/11/2026 16:30 — APIs do wf001 (api012 billet, api013 survey) no wfdb02
+
+- **No ar no wfdb02, com DNS ainda apontando para o wf001.** Playbook `services/docker/playbooks/docker-wfdb02-apis-wf001.yml` (+ rollback): não para a origem nem altera DNS. Segunda execução `changed=0`. Traefik local responde 200 para os dois hostnames; o survey conectou no banco.
+- **api013 survey:** MySQL **externo (DBaaS)**, credenciais embutidas na imagem (`ormconfig.json`, `synchronize: true`, que é um risco já existente). Não depende do wfdb02; o login a partir do IP do wfdb02 funcionou.
+- **api012 billet:** stack do Portainer (`/data/compose/24`, sem compose no disco). O `.env` é montado a partir do `docker inspect` (allowlist de 10 variáveis). Sem banco; SMTP SendGrid. Os 2,4 GB de PDFs temporários em `/app/tmp` não foram copiados. Na origem ele publicava `0.0.0.0:3033` e tinha 14 restarts por `ENOENT` no `unlink`.
+- **Imagens fixadas** pelo RepoDigest do wf001 (origem usa `:latest`). Labels refeitas com `certresolver=letsencrypt`.
+- **Pendente:** incluir api012/api013.vya.digital na regra "wfdb02 - SSL strict" (Rocket Loader off) → virar DNS → parar os containers no wf001.
+
+## 08/11/2026 16:45 — Análise da fila restante (lista v2.2 × estado real)
+
+- **Chatwoot "migrados" em `docs/containers-migration.txt` = só a pasta copiada**: `/opt/docker_user/chatwoot-{synchat,vya-digital}` no wfdb02 (~150 KB, sem storage/anexos, nenhum container). Os `.env` estão com **permissão 0755 e legíveis por todos**: corrigir para 0600.
+- **synChat não existe mais no wf001** (nem em `docker ps -a`); só o chat-vya-digital (wfdb01) segue ativo. Confirmar se o synChat foi fundido via `chatwoot-migrator-all` ou desativado.
+- **wfdb01 tem `seax-crm-app-agent-1`**, que não está na lista v2.2.
+- **Slice `docker-apps`**: 1,8 GB usados de 24 GB. Metabase (`dashboard`) e Kutt estão **sem mem_limit**.
+- **Ordem recomendada:** Evolution → n8n → chat-vya-digital → (synChat?) → hermes → cópias de pasta → SEAX/Supabase → synesis por último ou só desligar.
+
+## 08/11/2026 17:10 — Plano de migração n8n + Evolution
+
+- Plano em `tmp/wfdb02/plano-migracao-n8n-evolution.md`.
+- **Os dois já usam o banco do wfdb02**: migram só a execução, o Redis (n8n db10→db4; Evolution db2→db5) e os arquivos (`n8n_storage` 814 MB; `evolution_instances` 144 KB, 35 instâncias).
+- **Troca com origem parada, sem cópias simultâneas**: dois "main" do n8n no mesmo `n8n_db` duplicam gatilhos; duas Evolution com as mesmas sessões se derrubam. Pré-sincronização por rsync + delta na parada.
+- **Evolution não guarda sessão no Redis** (`CACHE_REDIS_SAVE_INSTANCES` ausente): o db2 é cache descartável. O compose do Evolution só existe dentro do Portainer (`/data/compose/6`).
+- **n8n**: `N8N_QUEUE_MODE=rabbitmq`/`N8N_QUEUE_RABBITMQ_CONNECTION_URL` não têm efeito no 2.x (remover). Middleware `nogzip` definido por label no compose (rota `/mcp`). Redução de 8 para 5 containers.
+- Pendências: data da janela, cliente externo no Redis db0 do wf001 (possível nó Redis em workflow), manter ou não `N8N_METRICS`.
